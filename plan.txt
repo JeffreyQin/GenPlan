@@ -1,0 +1,27 @@
+Map encoding
+
+Since all room locations are known beforehand, location of rooms and walls need not to be part of state representation in POMCP
+We assign an unique integer index to represent each room (note their coordinates don't matter in our case given a well-defined generator)
+
+
+POMCP definition
+
+- Each state is encoded by (r1, c1, r2, c2)
+  (r1, c1) is exit location
+  (r2, c2) is agent position
+
+- Actions are encoded by enums
+  1 (up/north)
+  2 (right/east)
+  3 (down/south)
+  4 (left/west)
+
+- An observation obtained should entail rooms that become visible as a result of action just taken
+  i.e. a set containing the integer indices of all newly visible rooms
+
+- In original POMCP, history is a sequence of actions and subsequent observation
+  Our history will entail all rooms that have become visible in the past
+  i.e. a set containing integer indices of all visible/known rooms
+
+
+for observation and history, we need a set-like data structure that supports equality checking (ideally (O(1)) time), such as a string encoding or tuple
