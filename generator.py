@@ -16,7 +16,6 @@ class Action(Enum):
     DOWN = 2
     LEFT = 2
 
-
 class State():
     
     def __init__(self, exit, agent_pos, observed):
@@ -29,7 +28,7 @@ class Generator():
 
     def __init__(self, map, range, reward):
         
-        self.map = map
+        self.map:list[list] = map
         self.map_dims = map.shape
         self.range = range
         self.reward = reward

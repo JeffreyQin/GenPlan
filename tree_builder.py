@@ -9,7 +9,7 @@ class TreeNode():
         self.node_idx = node_idx
         self.parent_idx = parent_idx
         self.is_root = True if parent_idx == -1 else False
-
+        
         self.N = 
         self.V = 
         self.B = 
