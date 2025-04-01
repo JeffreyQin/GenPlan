@@ -4,8 +4,8 @@ import numpy as np
 import os, re
 
 class Cell(Enum):
-    WALL = 0
-    ROOM = 1
+    ROOM = 0
+    WALL = 1
     UNDEFINED = 2
 
 class Cost(Enum):
@@ -13,13 +13,22 @@ class Cost(Enum):
     ROTATE = 2
 
     
+def get_fragment_id(f):
+    return hash(str(f.tolist()))
+
 
 def reformat(raw_map):
     formatted_map = [[Cell(num) for num in row] for row in range(len(raw_map))]
     return np.array(formatted_map)
 
 
-def errors_and_omissions(input_map, output_map):
+def map_to_string(map_array):
+    sublists_as_strings = ['[' + ','.join(map(str, sublist)) + ']' for sublist in map_array]
+    result = '[\n\t' + ',\n\t'.join(sublists_as_strings) + '\n]'
+    return result
+
+
+def compute_errors_and_omissions(input_map, output_map):
     height, width = input_map.shape
 
     matches = np.sum(input_map == output_map)
@@ -64,6 +73,14 @@ def transform_fragment(fragment, reflection, rotation):
         fragment = np.flip(fragment, 1)
     fragment = np.rot90(fragment, rotation)
     return fragment
+
+
+# Generalized solution, where various orientations of a fragment are matched to the map.
+# This partition can provides an acceptable solution, but it has two issues: 
+# 1. It can not handle noise. If even one pixel differs between input and fragnmet, we will match nothing
+#    TBD: Maybe may replace fragment pixels that do not match output as undefined, to allow partial match
+# 2. We only process vertical reflection, 
+#    Horizontal reflection represented as two rotations map to a higher MDL score than they should be
 
 def find_map_partition(input_map, fragment):
 
