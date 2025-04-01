@@ -47,7 +47,7 @@ class Node
   - children: list[Node] #children[1] will be taking action 1, #children[2] will be taking action 2...
   - num_visited: int (number of times this node was visited)
   - value: float #(value of the history or current obs)
-  - observation:
+  - observation: sum 2d array being the map (or a set)
   - beliefs: set #set of beliefs
 
 
