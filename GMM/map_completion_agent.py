@@ -1,48 +1,45 @@
 
-import utils as ut
 import numpy as np
 from openai import OpenAI
-# import secret_keys (comment this out and hope it works)
-# import pattern_editor
-from utils import regenerate_pattern
-from utils import similarity
-from utils import construct_copy
+from map_utils import *
+from plot_utils import *
+from other_utils import *
+from maps import input_maps
 import traceback
+import os, re
+from dotenv import load_dotenv
 
-class MapCompletionPrompt:
+class MapCompletionAgent:
  
     def __init__(self):
-        self.model = "gpt-4" #you might need to change this jeff
+        
+        load_dotenv()
 
-        # to be overriden in derived classes
-        self.n_completions      = 5
-        self.system_prompt      = ""
-        self.prompt_id          = 0
-        self.user_prompt_1      = ""
-        self.user_prompt_2      = ""
-        self.input_map          = None
-        self.input_id          = ""
+        self.model = "gpt-3.5-turbo"
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # to initialize the OpenAI client here we need to have a file secret_keys.py that contains an API key
-        self.client = OpenAI(api_key="") #please put your API key here
-    
+        self.system_prompt = ""
+        self.user_prompt = ""
+        self.prompt_id = 0
+        self.n_completions = 0
+        self.input_map = ""
+        self.input_id = 0
 
     def get_user_prompt(self):
         if (self.input_map is None):
             print("Input map is not set, call set_input_map to specify a map")
             raise Exception("Input map is not set, call set_input_map to specify a map")
         
-        str_map = ut.array_to_string(self.input_map)    
-        return (self.user_prompt_1 + str_map + self.user_prompt_2)
+        str_map = map_to_string(self.input_map)
+        return (self.user_prompt[0] + str_map + self.user_prompt[1])
     
     # input_map is a 2D array
     # n_completions - we may ask for more completions for harder testcases, and fewer for simple ones
     def set_input_map(self, input_id, n_completions):
         self.input_id = input_id
-        self.input_map = [] #fill this  map up
-        self.input_map = np.array(self.input_map)
+        self.input_map = np.array(input_maps[input_id])
         self.n_completions = n_completions
-   
+
 
     # This is where we interact with the LLM, or simulator.
     # We send the prompt, get the completions, and return a dictionary of map completions 
@@ -127,43 +124,50 @@ class MapCompletionPrompt:
             print("No valid fragments returned")
             return {}
             
-        ut.plot_input_response(self.input_map, fragments, save_image=log_file_name, show_plots=show_plots)
+        plot_input_response(self.input_map, fragments, save_image=log_file_name, show_plots=show_plots)
 
         try:
             for f in fragments:
-                partition = ut.partition(self.input_map, f)
-                output = regenerate_pattern(f, partition, self.input_map.shape)
-                sim = round(similarity(self.input_map, output),2)
+                
+                partition = find_map_partition(self.input_map, f)
+                output = generate_from_partition(f, partition, self.input_map.shape)
+                sim = round(similarity_score(self.input_map, output), 2)
+                errors_and_omissions = compute_errors_and_omissions(self.input_map, output)
+                mdl_score = structural_mdl_score(f, partition, errors_and_omissions[0], errors_and_omissions[1])
 
                 if (console_logs): 
                     print("fragment:\n ", f, "\n partition: \n", partition, "\n output: \n", output, "\n similarity: ", sim)
 
-                map_completions[ut.fragment_id(f)] = {"fragment": f, "log_file": log_file_name, "reconstructed_map": output, 
-                                    "mdl": ut.structural_mdl_score(f,partition, *ut.get_errors_and_omissions(self.input_map, output)), 
-                                    "similarity": sim}
+                map_completions[get_fragment_id(f)] = {
+                    "fragment": f, 
+                    "log_file": log_file_name, 
+                    "reconstructed_map": output, 
+                    "mdl": mdl_score,
+                    "similarity": sim
+                }
          
         except Exception as e:
             print(f"Reconstruction failed with Error: {e}")
 
-        return (map_completions)
+        return map_completions
     
-    # sending the prompt to the OpenAI API
-    # DebugPrompt will override this function
+
     def get_completions(self):
         print("Sending prompt..")
-        completion = self.client.chat.completions.create(n=self.n_completions, 
-                        model=self.model,  
-                        messages=[ self.system_prompt, 
-                        {"role": "user", "content":  self.get_user_prompt()} ] )
-        
-        # return a dictionary where i are keys, and response text are values
+        completion = self.client.chat.completions.create(
+            n=self.n_completions, 
+            model=self.model,  
+            messages=[ self.system_prompt, 
+            {"role": "user", "content":  self.get_user_prompt()} ]
+        )
+
         responses = {}
         for i, completion in enumerate(completion.choices):
-            responses[i] = completion.message['content']
-        
+            responses[i] = completion.message.content
+
         return responses
     
-          
+        
 
     def send_prompt(self, input_id, n_completions, show_plots = True, debug_mode = False, console_logs = False):
 
@@ -178,16 +182,18 @@ class MapCompletionPrompt:
         for i, resp in completions.items():
             print(f"************************************ Completion {i}:\n")
 
-            code = ut.extract_python(resp)
-    
+            code = extract_python(resp)
+
+            """
             if (not debug_mode):
-                log_file_name = ut.log_completion(self.input_map, code)  # log what we think is Python code part
-                ut.log_completion_text(resp, log_file_name)              # log full text
-                ut.log_prompt(self.prompt_id, self.system_prompt, self.get_user_prompt(), self.input_id) # log prompt
+                log_file_name = log_completion(self.input_map, code)  # log what we think is Python code part
+                log_completion_text(resp, log_file_name)              # log full text
+                log_prompt(self.prompt_id, self.system_prompt, self.get_user_prompt(), self.input_id) # log prompt
                 log_files += log_file_name
             else:
                 # get the part of sring i from "/" until the end of line - this is the log file name
                 log_files = i[i.find("/")+1:]
+            """
 
             maps.update( self.process_map_completion_from_response(code, log_file_name, show_plots, console_logs) )
 
@@ -201,19 +207,20 @@ class MapCompletionPrompt:
 
             return {}
         else:
-
             # plot the best MDL and best similarity completions 
             best_mdl = sorted(maps.items(), key=lambda item: item[1]['mdl'], reverse=True)[0]
             sorted_maps = sorted(maps.items(), key=lambda item: item[1]['similarity'], reverse=True)
             best_similarity = sorted_maps[0]
 
+            """
             if (not debug_mode):
                 if (best_mdl[0] != best_similarity[0]):
-                    ut.generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best Similarity completion", f"out_similarity_{log_files}", show_plots)
-                    ut.generate_completion_plot(self.input_map, best_mdl[1].get("fragment"), "Best MDL completion", f"out_mdl_{log_files}", show_plots)
+                    generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best Similarity completion", f"out_similarity_{log_files}", show_plots)
+                    generate_completion_plot(self.input_map, best_mdl[1].get("fragment"), "Best MDL completion", f"out_mdl_{log_files}", show_plots)
                 else:
-                    ut.generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best completion", f"out_{log_files}", show_plots)
-            
+                    generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best completion", f"out_{log_files}", show_plots)
+            """
+
             print(f"{len(sorted_maps)} completions returned")
 
             if (not debug_mode):
@@ -222,4 +229,3 @@ class MapCompletionPrompt:
 
             return sorted_maps
 
-    
