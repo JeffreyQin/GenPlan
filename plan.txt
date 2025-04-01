@@ -47,6 +47,7 @@ class Node
   - children: list[Node] #children[1] will be taking action 1, #children[2] will be taking action 2...
   - num_visited: int (number of times this node was visited)
   - value: float #(value of the history or current obs)
+  - observation:
   - beliefs: set #set of beliefs
 
 
@@ -64,11 +65,38 @@ algorithm Search(root:Node):
   best_action = children.index(max(children[0].value, children[1].value etc))
 
   return best_action
-
+end procedure
 
 algorithm Simulate(state, node, depth)
-  if(depth > epislon) then
+  if(discount^depth < epislon) then #discount factor is too small so we just cut it off
     return 0
   end if
 
-  if 
+  if not node.observation in tree:
+    T.append(node.observation)
+    for i in range(1,5): #1-4 possible actions inclusive do
+      node.children.append(Node(num_visited = 0, value = 0, beliefs = Null))
+    end for
+    return Rollout(node, state, depth)
+  end if
+
+  action = argmax(node.children.value + c * sqrt(log(node.num_visited)/node.children[i].num_visited)) #sorry its so messy
+
+  new_node, reward = generate(node, action)
+  R = r + discount_r * Simulate(new_node, depth + 1)
+  
+  node.num_visited += 1
+  node.children[action].num_visited += 1
+  node.children[action].value = node.children[action].value + (R - node.children[action].value)/node.children[action].num_visited
+  return R
+end procedure
+
+
+procedure Rollout(node, state, depth):
+  if(discount^depth < epislon) then #discount factor is too small so we just cut it off
+    return 0
+  end if
+  action = random(1,4) #uniform distribution sample an action
+  new_node, reward = generate(node, action)
+  return r + discount_r * Rollout(new_node, state, depth + 1)
+end procedure
