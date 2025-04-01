@@ -28,6 +28,7 @@ class MapCompletionPrompt:
     
 
     def get_user_prompt(self):
+        #returns the full prompt to be used for chatgpt
         if (self.input_map is None):
             print("Input map is not set, call set_input_map to specify a map")
             raise Exception("Input map is not set, call set_input_map to specify a map")

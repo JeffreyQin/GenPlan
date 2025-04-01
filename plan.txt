@@ -25,3 +25,50 @@ POMCP definition
 
 
 for observation and history, we need a set-like data structure that supports equality checking (ideally (O(1)) time), such as a string encoding or tuple
+
+Pseudocode
+
+A state s entails
+       current agent position as (r1, c1)
+       exit position as (r2, c2)
+       a set of all observed open cell (each encoded as pair (r,c))
+Actions are encoded in enum
+       1 (up)
+       2 (right)
+       3 (down)
+       4 (left)
+An observation o entails all open cells that have been observed so far
+      i.e. a set of coordinate pairs (r, c)
+      note that in our maze search task, observation is unique given state
+A history h is an alternating sequence of [a, o, a, o, a, o, ...]
+       this means that any observation in h would be a superset of any previous observation in h, as new rooms become observed
+
+class Node
+  - children: list[Node] #children[1] will be taking action 1, #children[2] will be taking action 2...
+  - num_visited: int (number of times this node was visited)
+  - value: float #(value of the history or current obs)
+  - beliefs: set #set of beliefs
+
+
+#start by initializing a root
+root = Node(intial_belief, initial_value = 0, num_visited = 0)
+tree = set(observations, agent_pos) #s
+
+algorithm Search(root:Node):
+  while(either some iteration or some time): #keep repeating this a large number of times
+    state = random.choice(root.beliefs) randomly pick a state
+    simulate(state, root, depth)
+
+  end while
+
+  best_action = children.index(max(children[0].value, children[1].value etc))
+
+  return best_action
+
+
+algorithm Simulate(state, node, depth)
+  if(depth > epislon) then
+    return 0
+  end if
+
+  if 
