@@ -37,8 +37,6 @@ class Node():
             self.encoding += str(obs[0]) + "," + str(obs[1]) + "|"
         
 
-
-
 class POMCP():
 
     def __init__(self, generator, discount, epsilon = 0.001):
@@ -129,13 +127,11 @@ class POMCP():
         """
         depth:int = 5 #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
         while(True): #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
-            state:tuple[int, int] = random.choice(root.obs)
+            state:tuple[int, int] = random.choice(root.belief)
             self.simulate(state, root, depth)
             break #REMEMBER TO REMOVE THIS
 
         best_action:int = self.best_action_index(root)
         
         return best_action
-
-
 
