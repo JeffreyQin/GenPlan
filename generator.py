@@ -101,5 +101,3 @@ class Generator():
         else:
             # penalize for step
             return exit_state, dest, new_obs, self.penalty
-
-
