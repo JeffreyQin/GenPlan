@@ -16,7 +16,7 @@ class Node():
         self.num_visited: int = num_visited
         self.value: float = value
 
-        self.belief: dict[tuple[int, int], float] = dict()
+        self.belief: set(tuple[int, int]) = dict()
         self.children: list[Node] = list()
 
         self.encoding: str = ""
