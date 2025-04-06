@@ -41,17 +41,19 @@ class Node():
 
 class POMCP():
 
-    def __init__(self, generator, discount, epsilon = 0.001):
+    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001):
         """
         generator - black box generator
 
         discount - discount factor
+        exploration - exploration parameter used in UCB
         episilon - cutoff for the discount factor
         """
         
         self.generator: Generator = generator
 
         self.discount: float = discount
+        self.c: float = exploration
         self.epsilon: float = epsilon
 
         # used to track which nodes are currently in the tree
@@ -72,7 +74,7 @@ class POMCP():
         """
         if not node.encoding in self.tree:
             self.tree.add(node.encoding)
-            for a in Action:
+            for a in range(4):
                 """
                 NEED TO CHECK HERE
 
@@ -82,33 +84,35 @@ class POMCP():
                 node.children.append(Node(node.agent_pos, node.obs, 0, 0))
             return self.rollout(node, state, depth)
         else:
-            c:float = 0.5
-            a0_value:float = node.children[0].value + c * math.sqrt(
-                math.log(node.num_visited)/node.children[0].num_visited)
-            a1_value:float = node.children[1].value + c * math.sqrt(
-                math.log(node.num_visited)/node.children[1].num_visited)
-            a2_value:float = node.children[2].value + c * math.sqrt(
-                math.log(node.num_visited)/node.children[2].num_visited)
-            a3_value:float = node.children[3].value + c * math.sqrt(
-                math.log(node.num_visited)/node.children[3].num_visited)
-            
-            action_values:list[float] = [a0_value, a1_value, a2_value, a3_value]
-            a:int = action_values.index(max(action_values)) # a is the action you will take
+            action_values: list[float] = list()
+            for a in range(4):
+                action_values.append(self.UCB1(node, a))
 
-            new_state, obs, reward = self.generator.generate(state, node, action)
+            chosen_action :int = action_values.index(max(action_values)) # a is the action you will take
 
-            reward = reward + self.simulate(new_state, node.children[a] ,depth + 1)
+            new_state, new_pos, new_pos, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
+
+            reward = reward + self.simulate(new_state, node.children[a], depth + 1)
 
             #should belief still stay the same?
 
+            # Jeff: belief should be the same (not modified by simulation)
+
             node.num_visited += 1
-            node.children[a].num_visited += 1
+
+            # Jeff: this should probably be deleted because we are not doing alternating action v.s. observation in the tree
+            #       we only have observation, so after we will add 1 to node.children[a] next simulation call anyway
+            node.children[a].num_visited += 1 
+
             node.children[a].value = node.children[a].value + (reward - node.children[a].value)/node.children[a].num_visited
 
             return reward
+        
             
+    def UCB1(self, node: Node, action: int):
+        return node.children[action].value + self.c * math.sqrt(
+                math.log(node.num_visited) / node.children[0].num_visited)
 
-            
     def best_action_index(self, root: Node) -> int:
         """
         Small helper function to find the action with the largest value given the node
