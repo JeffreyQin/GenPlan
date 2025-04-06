@@ -91,15 +91,18 @@ class Generator():
         
         # summarize new observed cells
         new_obs = Copy(curr_obs)
+        exit_found = False
         for room in self.rooms:
             if self.is_observable(dest, room):
                 new_obs.add(room)
+                if room == exit_state:
+                    exit_found = True
         
         if exit_state in new_obs:
             # huge reward if exit found
-            return exit_state, dest, new_obs, self.reward
+            return exit_found, dest, new_obs, self.reward
         else:
             # penalize for step
-            return exit_state, dest, new_obs, self.penalty
+            return exit_found, dest, new_obs, self.penalty
 
 
