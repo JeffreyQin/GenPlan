@@ -1,27 +1,26 @@
 
 from collections import defaultdict
-from tree_builder import Cell, Action
+from tree_builder import State, Cell, Action
 from copy import Copy
+
 
 class Generator():
 
-    def __init__(self, map, range, reward, penalty):
+    def __init__(self, map: list[list], range: int, reward):
         
-        self.map: list[list[int]] = map
-        self.map_dims: tuple[int, int] = map.shape
-        self.range: int = range
-        self.reward: float = reward
-        self.penalty: float = penalty
+        self.map = map
+        self.map_dims = map.shape
+        self.range = range
+        self.reward = reward
 
-        self.rooms: set[tuple[int, int]] = set()
-
+        self.rooms = set()
         for r in range(self.map_dims[0]):
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
 
 
-    def is_observable(self, pos: tuple[int, int], target: tuple[int, int]):
+    def is_observable(self, pos: tuple, target: tuple):
         """
         checks if target cell is observable from current cell
 
@@ -60,46 +59,37 @@ class Generator():
                     return False
         return True
     
-    def get_init_obs(self, agent_pos: tuple[int, int]):
-        """
-        simply returns observable rooms from current agent position
 
-        used for initialization
+    def generate(self, state: State, action: int):
+        """
+        runs black box generator by performing input action on input state
+
+        returns new state, observation, and reward
         """
 
-        obs = set()
-        for room in self.rooms:
-            if self.is_observable(agent_pos, room):
-                obs.add(room)
-        return obs
-    
-    def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], action: int):
-        """
-        runs black box generator by performing input action on current position and observation
-
-        return new position, observation, and reward
-        """
-        
         if action == Action.UP.value:
-            dest = (agent_pos[0] - 1, agent_pos[1])
+            dest = (state.agent[0] - 1, state.agent[1])
         elif action == Action.RIGHT.value:
-            dest = (agent_pos[0], agent_pos[1] + 1)
+            dest = (state.agent[0], state.agent[1] + 1)
         elif action == Action.DOWN.value:
-            dest = (agent_pos[0] + 1, agent_pos[1])
+            dest = (state.agent[0] + 1, state.agent[1])
         elif action == Action.LEFT.value:
-            dest = (agent_pos[0], agent_pos[1] - 1)
+            dest = (state.agent[0], state.agent[1] - 1)
+        
+        new_state = State(exit, dest, Copy(state.observed))
         
         # summarize new observed cells
-        new_obs = Copy(curr_obs)
+        exit_found = False
         for room in self.rooms:
-            if self.is_observable(dest, room):
-                new_obs.add(room)
+            if self.is_observable(dest, room) and room != dest:
+                new_state.observed.add(room)
+                if room == state.exit:
+                    exit_found = True
         
-        if exit_state in new_obs:
-            # huge reward if exit found
-            return exit_state, dest, new_obs, self.reward
+        if exit_found or len(new_state.observed) == len(self.rooms):
+            return new_state, new_state.observed, self.reward
         else:
             # penalize for step
-            return exit_state, dest, new_obs, self.penalty
+            return new_state, new_state.observed, -1
 
 
