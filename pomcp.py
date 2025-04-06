@@ -39,7 +39,7 @@ class Node():
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001):
+    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth:int = 100):
         """
         generator - black box generator
 
@@ -56,6 +56,7 @@ class POMCP():
 
         # used to track which nodes are currently in the tree
         self.tree: set[str] = set()
+        self.depth_limit:int = depth
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int):
         """
@@ -88,7 +89,10 @@ class POMCP():
 
             chosen_action :int = action_values.index(max(action_values)) # a is the action you will take
 
-            new_state, new_pos, new_pos, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
+            new_state, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
+
+            node.children[a].obs = new_obs
+            node.children[a].agent_pos = new_pos
 
             reward = reward + self.simulate(new_state, node.children[a], depth + 1)
 
@@ -100,12 +104,11 @@ class POMCP():
 
             # Jeff: this should probably be deleted because we are not doing alternating action v.s. observation in the tree
             #       we only have observation, so after we will add 1 to node.children[a] next simulation call anyway
-            node.children[a].num_visited += 1 
+            #node.children[a].num_visited += 1
 
             node.children[a].value = node.children[a].value + (reward - node.children[a].value)/node.children[a].num_visited
 
             return reward
-        
             
     def UCB1(self, node: Node, action: int):
         return node.children[action].value + self.c * math.sqrt(
@@ -116,9 +119,9 @@ class POMCP():
         Small helper function to find the action with the largest value given the node
         """
         action_values:list[float] = [
-            root.children[0].value, 
-            root.children[1].value, 
-            root.children[2].value, 
+            root.children[0].value,
+            root.children[1].value,
+            root.children[2].value,
             root.children[3].value
         ]
         best_action:int = action_values.index(max(action_values))
