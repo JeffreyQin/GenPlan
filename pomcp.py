@@ -61,13 +61,9 @@ class POMCP():
         """
         rollout function for exploring new actions/states
         """
-
-        if math.pow(self.discount, depth) < self.epsilon:
-            return 0
-         
         random_action = random.randint(0,3)
         new_state, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, random_action)
-        return reward + self.discount * self.rollout(node.children[random_action], new_state, depth + 1)
+        return reward + self.rollout(node.children[random_action], new_state, depth + 1)
     
 
     def simulate(self, state: tuple[int, int], node: Node, depth: int) -> float:
