@@ -16,7 +16,7 @@ class Node():
         self.num_visited: int = num_visited
         self.value: float = value
 
-        self.belief: dict[tuple[int, int], float] = dict()
+        self.belief: set[tuple[int, int]] = dict()
         self.children: list[Node] = list()
 
         self.encoding: str = ""
@@ -36,8 +36,6 @@ class Node():
         for obs in obs_list:
             self.encoding += str(obs[0]) + "," + str(obs[1]) + "|"
         
-
-
 
 class POMCP():
 
@@ -133,13 +131,11 @@ class POMCP():
         """
         depth:int = 5 #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
         while(True): #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
-            state:tuple[int, int] = random.choice(root.obs)
+            state:tuple[int, int] = random.choice(root.belief)
             self.simulate(state, root, depth)
             break #REMEMBER TO REMOVE THIS
 
         best_action:int = self.best_action_index(root)
         
         return best_action
-
-
 
