@@ -1,45 +1,13 @@
 import random
 import math
-from tree_builder import Action
-from generator import Generator
+from tree_builder import Node
+from generator import Generator 
 # #chat let me lock in rq
 
 
-class Node():
-    """
-    Class Node for pomcp
-    """
-    def __init__(self, agent_pos, obs, num_visited = 0, value = 0):
-
-        self.agent_pos: tuple[int, int] = agent_pos
-        self.obs: set[tuple[int, int]] = obs
-        self.num_visited: int = num_visited
-        self.value: float = value
-
-        self.belief: set[tuple[int, int]] = dict()
-        self.children: list[Node] = list()
-
-        self.encoding: str = ""
-        self.encode()
-
-    def encode(self):
-        """
-        encode current node into a string
-        
-        used for tracking purposes by pomcp
-        """
-        self.encoding += str(self.agent_pos[0]) + "," + str(self.agent_pos[1]) + "|"
-        self.encoding += str(len(self.obs)) + "|"
-
-        obs_list = list(self.obs)
-        obs_list = sorted(obs_list)
-        for obs in obs_list:
-            self.encoding += str(obs[0]) + "," + str(obs[1]) + "|"
-        
-
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth:int = 100):
+    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth = 100):
         """
         generator - black box generator
 
@@ -53,18 +21,18 @@ class POMCP():
         self.discount: float = discount
         self.c: float = exploration
         self.epsilon: float = epsilon
+        self.depth_limit: int = depth
 
         # used to track which nodes are currently in the tree
         self.tree: set[str] = set()
-        self.depth_limit:int = depth
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int):
         """
         rollout function for exploring new actions/states
         """
         random_action = random.randint(0,3)
-        new_state, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, random_action)
-        return reward + self.rollout(node.children[random_action], new_state, depth + 1)
+        exit_found, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, random_action)
+        return reward + self.rollout(node.children[random_action], state, depth + 1)
     
 
     def simulate(self, state: tuple[int, int], node: Node, depth: int) -> float:
@@ -80,7 +48,8 @@ class POMCP():
                 when initialize node.children
                 if agent pos and observation should be updated
                 """
-                node.children.append(Node(node.agent_pos, node.obs, 0, 0))
+                _, new_pos, new_obs, _ = self.generator.generate(state, node.agent_pos, node.obs, a)
+                node.children.append(Node(new_pos, new_obs, 0, 0))
             return self.rollout(node, state, depth)
         else:
             action_values: list[float] = list()
@@ -89,22 +58,18 @@ class POMCP():
 
             chosen_action :int = action_values.index(max(action_values)) # a is the action you will take
 
-            new_state, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
+            exit_found, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
 
             node.children[a].obs = new_obs
             node.children[a].agent_pos = new_pos
 
-            reward = reward + self.simulate(new_state, node.children[a], depth + 1)
+            reward = reward + self.simulate(state, node.children[a], depth + 1)
 
             #should belief still stay the same?
 
             # Jeff: belief should be the same (not modified by simulation)
 
             node.num_visited += 1
-
-            # Jeff: this should probably be deleted because we are not doing alternating action v.s. observation in the tree
-            #       we only have observation, so after we will add 1 to node.children[a] next simulation call anyway
-            #node.children[a].num_visited += 1
 
             node.children[a].value = node.children[a].value + (reward - node.children[a].value)/node.children[a].num_visited
 
