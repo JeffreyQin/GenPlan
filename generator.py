@@ -1,20 +1,19 @@
 
 from collections import defaultdict
 from tree_builder import Cell, Action
-from copy import Copy
 
 class Generator():
 
-    def __init__(self, map, range, reward, penalty):
+    def __init__(self, map, agent_r, reward, penalty):
         
         self.map: list[list[int]] = map
         self.map_dims: tuple[int, int] = map.shape
-        self.range: int = range
+        self.agent_r: int = agent_r
         self.reward: float = reward
         self.penalty: float = penalty
 
         self.rooms: set[tuple[int, int]] = set()
-
+        
         for r in range(self.map_dims[0]):
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
@@ -90,7 +89,7 @@ class Generator():
             dest = (agent_pos[0], agent_pos[1] - 1)
         
         # summarize new observed cells
-        new_obs = Copy(curr_obs)
+        new_obs = curr_obs.copy()
         exit_found = False
         for room in self.rooms:
             if self.is_observable(dest, room):
