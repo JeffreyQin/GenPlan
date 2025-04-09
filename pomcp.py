@@ -26,10 +26,12 @@ class POMCP():
         # used to track which nodes are currently in the tree
         self.tree: set[str] = set()
 
-    def rollout(self, node: Node, state: tuple[int, int], depth: int):
+    def rollout(self, node: Node, state: tuple[int, int], depth: int)->float:
         """
         rollout function for exploring new actions/states
         """
+        if depth == 10:
+            return 0
         random_action = random.randint(0,3)
         exit_found, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, random_action)
         return reward + self.rollout(node.children[random_action], state, depth + 1)
@@ -107,3 +109,5 @@ class POMCP():
         
         return best_action
 
+# horizon = depth of a search
+# # of rollouts = # of times search is called
