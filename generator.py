@@ -33,7 +33,11 @@ class Generator():
         dr = r2 - r1
         dc = c2 - c1
 
+        limit_r, limit_c = self.map_dims
+
         num_steps = max(abs(dr), abs(dc))
+        if num_steps == 0: #return true because your dest is just the current agent pos
+            return True
         r_increment = dr / num_steps
         c_increment = dc / num_steps
         
@@ -55,6 +59,8 @@ class Generator():
             r_next_coord, c_next_coord = int(r_next), int(c_next)
             
             if r_next_coord != r_curr_coord and c_next_coord != c_curr_coord:
+                if r_next_coord >= limit_r or c_next_coord >= limit_c:
+                    continue
                 if self.map[r_curr_coord, c_next_coord] == Cell.WALL.value or self.map[r_next_coord, c_curr_coord] == Cell.WALL.value:
                     return False
         return True
@@ -78,7 +84,7 @@ class Generator():
 
         return new position, observation, and reward
         """
-        
+        dest = (agent_pos[0], agent_pos[1])
         if action == Action.UP.value:
             dest = (agent_pos[0] - 1, agent_pos[1])
         elif action == Action.RIGHT.value:
@@ -87,6 +93,13 @@ class Generator():
             dest = (agent_pos[0] + 1, agent_pos[1])
         elif action == Action.LEFT.value:
             dest = (agent_pos[0], agent_pos[1] - 1)
+
+        print(f"{agent_pos } this the agent pos")
+        print(action)
+        print( f"{dest} this where the agent gonna be")
+
+        if dest not in self.rooms:
+            return False, agent_pos, curr_obs, self.penalty
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
