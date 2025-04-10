@@ -4,12 +4,11 @@ from tree_builder import Cell, Action
 
 class Generator():
 
-    def __init__(self, map, agent_r, reward, penalty):
+    def __init__(self, map, agent_r, penalty):
         
         self.map: list[list[int]] = map
         self.map_dims: tuple[int, int] = map.shape
         self.agent_r: int = agent_r
-        self.reward: float = reward
         self.penalty: float = penalty
 
         self.rooms: set[tuple[int, int]] = set()
@@ -19,65 +18,96 @@ class Generator():
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
 
+    
+    def get_observation(self, pos: tuple[int, int]):
 
-    def is_observable(self, pos: tuple[int, int], target: tuple[int, int]):
-        """
-        checks if target cell is observable from current cell
-
-        observable iff line connecting the centers of squares
-        does not contain a part or corner of a wall
-        """
-        r1, c1 = pos
-        r2, c2 = target
-
-        dr = r2 - r1
-        dc = c2 - c1
-
-        limit_r, limit_c = self.map_dims
-
-        num_steps = max(abs(dr), abs(dc))
-        if num_steps == 0: #return true because your dest is just the current agent pos
-            return True
-        r_increment = dr / num_steps
-        c_increment = dc / num_steps
+        observations = set()
+        (r, c) = pos
         
-        r_curr = r1 + 0.5
-        c_curr = c1 + 0.5
+        # 1st quadrant
+        c_left = 0
+        
+        for r_ in range(r, -1, -1):
+            columns = []
+            for c_ in range(c, c_left-1, -1):
 
-        for _ in range(num_steps):
-            r_curr += r_increment
-            c_curr += c_increment
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
 
-            # check if current square is wall
-            r_curr_coord, c_curr_coord = int(r_curr), int(c_curr)
-            if self.map[r_curr_coord, c_curr_coord] == Cell.WALL.value:
-                return False
+                columns.append(c_)
+
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
             
-            # check for pass through wall corner
-            r_next = r_curr + r_increment
-            c_next = c_curr + c_increment
-            r_next_coord, c_next_coord = int(r_next), int(c_next)
+            if not columns:
+                break
+
+            c_left = columns[-1]
+
+        # 2nd quadrant
+        c_right = self.map_dims[1] - 1
+
+        for r_ in range(r, -1, -1):
+            columns = []
+            for c_ in range(c, c_right+1):
+
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+
+                columns.append(c_)
+
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+
+            if not columns:
+                break
+
+            c_right = columns[-1]
+
+        # 3rd quadrant
+        c_left = 0
+        
+        for r_ in range(r, self.map_dims[0]):
+            columns = []
+
+            for c_ in range(c, c_left-1, -1):
+
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+
+                columns.append(c_)
+
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
             
-            if r_next_coord != r_curr_coord and c_next_coord != c_curr_coord:
-                if r_next_coord >= limit_r or c_next_coord >= limit_c:
-                    continue
-                if self.map[r_curr_coord, c_next_coord] == Cell.WALL.value or self.map[r_next_coord, c_curr_coord] == Cell.WALL.value:
-                    return False
-        return True
-    
-    def get_init_obs(self, agent_pos: tuple[int, int]):
-        """
-        simply returns observable rooms from current agent position
+            if not columns:
+                break
 
-        used for initialization
-        """
+            c_left = columns[-1]
 
-        obs = set()
-        for room in self.rooms:
-            if self.is_observable(agent_pos, room):
-                obs.add(room)
-        return obs
-    
+        # 4th quadrant
+        c_right = self.map_dims[1] - 1
+        
+        for r_ in range(r, self.map_dims[0]):
+            columns = []
+            for c_ in range(c, c_right+1):
+
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+
+                columns.append(c_)
+
+                if self.map[r_][c_] in Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+
+            if not columns:
+                break
+
+            c_right = columns[-1]
+            
+        return observations
+
+
     def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], action: int):
         """
         runs black box generator by performing input action on current position and observation
@@ -103,18 +133,14 @@ class Generator():
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
-        exit_found = False
-        for room in self.rooms:
-            if self.is_observable(dest, room):
-                new_obs.add(room)
-                if room == exit_state:
-                    exit_found = True
+        observation = self.get_observation(dest)
+        for obs in observation:
+            new_obs.add(obs)
         
         if exit_state in new_obs:
-            # huge reward if exit found
-            return exit_found, dest, new_obs, self.reward
+            return True, dest, new_obs, 0.0
         else:
             # penalize for step
-            return exit_found, dest, new_obs, self.penalty
+            return False, dest, new_obs, self.penalty
 
 
