@@ -1,4 +1,6 @@
 from enum import Enum
+from collections import defaultdict
+
 
 class Cell(Enum):
     WALL = 0
@@ -18,18 +20,17 @@ class Node():
     """
     Class Node for pomcp
     """
-    def __init__(self, agent_pos, obs, num_visited = 0, value = 0):
+    def __init__(self, agent_pos, obs, belief, parent_id, parent_a):
 
         self.agent_pos: tuple[int, int] = agent_pos
         self.obs: set[tuple[int, int]] = obs
-        self.num_visited: int = num_visited
-        self.value: float = value
+        self.num_visited: int = 0
+        self.value: float = 0.0
 
-        self.belief: set[tuple[int, int]] = dict()
-        self.children: list[Node] = list()
+        self.belief: set[tuple[int, int]] = belief
+        self.children: dict[int, Node] = defaultdict(lambda: None)
 
-        self.encoding: str = ""
-        self.encode()
+        self.id = parent_id + str(parent_a)
 
     def encode(self):
         """
@@ -38,6 +39,7 @@ class Node():
         used for tracking purposes by pomcp
         """
         self.encoding += str(self.agent_pos[0]) + "," + str(self.agent_pos[1]) + "|"
+        self.encoding += str(self.level) + "|"
         self.encoding += str(len(self.obs)) + "|"
 
         obs_list = list(self.obs)

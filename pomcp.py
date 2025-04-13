@@ -30,19 +30,29 @@ class POMCP():
         """
         rollout function for exploring new actions/states
         """
-        if depth == 10:
+        if depth > self.depth_limit:
             return 0
+        
         random_action = random.randint(0,3)
-        exit_found, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, random_action)
-        return reward + self.rollout(node.children[random_action], state, depth + 1)
+
+        exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, random_action)
+
+        if exit_found:
+            return 0
+        else:
+            temp_node = Node(new_pos, new_obs, new_belief, node.id, random_action)
+            return reward + self.rollout(temp_node, state, depth + 1)
     
 
     def simulate(self, state: tuple[int, int], node: Node, depth: int) -> float:
         """
         simulate function for searching
         """
-        if not node.encoding in self.tree:
-            self.tree.add(node.encoding)
+        if node.id not in self.tree:
+            self.tree.add(node.id)
+
+            node.num_visited += 1
+
             for a in range(4):
                 """
                 NEED TO CHECK HERE
@@ -50,36 +60,36 @@ class POMCP():
                 when initialize node.children
                 if agent pos and observation should be updated
                 """
-                _, new_pos, new_obs, _ = self.generator.generate(state, node.agent_pos, node.obs, a)
-                node.children.append(Node(new_pos, new_obs, 0, 0))
+                _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node, a)
+                node.children[a] = Node(new_pos, new_obs, new_belief, node.id, a)
             return self.rollout(node, state, depth)
         else:
             action_values: list[float] = list()
             for a in range(4):
                 action_values.append(self.UCB1(node, a))
 
-            chosen_action :int = action_values.index(max(action_values)) # a is the action you will take
-
-            exit_found, new_pos, new_obs, reward = self.generator.generate(state, node.agent_pos, node.obs, chosen_action)
-
-            node.children[a].obs = new_obs
-            node.children[a].agent_pos = new_pos
-
-            reward = reward + self.simulate(state, node.children[a], depth + 1)
-
-            #should belief still stay the same?
-
-            # Jeff: belief should be the same (not modified by simulation)
+            chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
+            exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, chosen_a)
+            
+            node.children[chosen_a].obs = new_obs
+            node.children[chosen_a].agent_pos = new_pos
 
             node.num_visited += 1
 
-            node.children[a].value = node.children[a].value + (reward - node.children[a].value)/node.children[a].num_visited
+            reward = reward + self.simulate(state, node.children[chosen_a], depth + 1)
+
+            node.children[chosen_a].value = node.children[chosen_a].value + (reward - node.children[chosen_a].value)/node.children[chosen_a].num_visited
 
             return reward
+        
             
     def UCB1(self, node: Node, action: int):
-        return node.children[action].value + self.c * math.sqrt(
-                math.log(node.num_visited) / node.children[0].num_visited)
+        if node.children[action].num_visited == 0: # unvisited action
+            return float('inf')
+        else:
+            return node.children[action].value + self.c * math.sqrt(
+                    math.log(node.num_visited) / node.children[action].num_visited)
+        
 
     def best_action_index(self, root: Node) -> int:
         """
@@ -91,7 +101,11 @@ class POMCP():
             root.children[2].value,
             root.children[3].value
         ]
+        print("Action values")
+        print(action_values)
         best_action:int = action_values.index(max(action_values))
+        print("Best action")
+        print(best_action)
         return best_action
 
 
@@ -100,10 +114,13 @@ class POMCP():
         Search will take a node and return an integer corresponding to the best action
         """
         depth:int = 5 #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
-        while(True): #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
-            state:tuple[int, int] = random.choice(root.belief)
+
+        count = 0
+        while count < 100: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+            state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, depth)
-            break #REMEMBER TO REMOVE THIS
+            print("complete simulation" + str(count))
+            count += 1
 
         best_action:int = self.best_action_index(root)
         

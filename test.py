@@ -33,10 +33,10 @@ map_data = np.array(input_maps[map_id])
 
 agent_r = 1
 agent_start = (3, 0)
-exit_pos = (3, 5)
-reward = 100
+exit_pos = (0, 4)
+reward = 100 # not used
 penalty = -1
-gen = Generator(map_data, agent_r, reward, penalty)
+gen = Generator(map_data, agent_r, penalty)
 agent_pos = agent_start
 obs = gen.get_init_obs(agent_pos)
 
