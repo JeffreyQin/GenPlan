@@ -149,7 +149,7 @@ class Generator():
         # print( f"{dest} this where the agent gonna be")
 
         if dest not in self.rooms:
-            return False, agent_pos, curr_obs, curr_belief, self.penalty
+            return False, agent_pos, curr_obs, curr_belief, self.penalty*3 #remember to ask jeffery ab this
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
