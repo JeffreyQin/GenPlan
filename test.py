@@ -69,7 +69,7 @@ while running:
             else:
                 continue
 
-            exit_found, agent_pos, obs, reward = gen.generate(exit_pos, agent_pos, obs, action)
+            exit_found, agent_pos, obs,belief, reward = gen.generate(exit_pos, agent_pos, obs, action)
             if exit_found:
                 print("Exit found!")
 

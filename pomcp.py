@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth = 17):
+    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth = 20):
         """
         generator - black box generator
 
@@ -113,10 +113,10 @@ class POMCP():
         """
         Search will take a node and return an integer corresponding to the best action
         """
-        depth:int = 5 #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+        depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
 
         count = 0
-        while count < 1000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+        while count < depth*300: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, depth)
             #print("complete simulation" + str(count))
