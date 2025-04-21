@@ -38,7 +38,7 @@ reward = 100 # not used
 penalty = -1
 gen = Generator(map_data, agent_r, penalty)
 agent_pos = agent_start
-obs = gen.get_init_obs(agent_pos)
+obs = gen.get_init_state(agent_pos)
 
 # Pygame Init
 pygame.init()
