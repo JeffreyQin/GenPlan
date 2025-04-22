@@ -34,7 +34,7 @@ input_maps = np.array([
 
 
 # Initial parameters
-agent_start_pos = (3, 2)
+agent_start_pos = (6, 8)
 exit_state = (0, 0)  # Set exit state as desired
 range_sight = 5
 penalty = -1.0
@@ -53,6 +53,7 @@ def run_experiment():
     current_node = Node(agent_start_pos, obs, belief, parent_id="", parent_a=0)
 
     pomcp_algorithm = POMCP(generator, discount)
+    action = pomcp_algorithm.search(current_node)
 
     running = True
     exit_found = False
@@ -66,7 +67,13 @@ def run_experiment():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and not exit_found:
                     # POMCP search returns an action (int)
+
+                    #action_values: list[float] = list()
                     action = pomcp_algorithm.search(current_node)
+                    # for a in range(4):
+                    #     action_values.append(current_node.children[a].value)
+
+                    # action :int = action_values.index(max(action_values))
                     print(f"POMCP selected action: {Action(action).name}")
 
                     # Update the state using the generator's generate function

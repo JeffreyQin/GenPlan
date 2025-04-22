@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 0.5, epsilon = 0.001, depth = 20):
+    def __init__(self, generator, discount, exploration = 0.05, epsilon = 0.001, depth = 100):
         """
         generator - black box generator
 
@@ -38,6 +38,7 @@ class POMCP():
         exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, random_action)
 
         if exit_found:
+            print("exit found!")
             return 0
         else:
             temp_node = Node(new_pos, new_obs, new_belief, node.id, random_action)
@@ -54,12 +55,6 @@ class POMCP():
             node.num_visited += 1
 
             for a in range(4):
-                """
-                NEED TO CHECK HERE
-
-                when initialize node.children
-                if agent pos and observation should be updated
-                """
                 _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node, a)
                 node.children[a] = Node(new_pos, new_obs, new_belief, node.id, a)
             return self.rollout(node, state, depth)
@@ -70,6 +65,9 @@ class POMCP():
 
             chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
             exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, chosen_a)
+
+            if(exit_found):
+                print("exit found")
             
             node.children[chosen_a].obs = new_obs
             node.children[chosen_a].agent_pos = new_pos
@@ -116,7 +114,7 @@ class POMCP():
         depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
 
         count = 0
-        while count < depth*300: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+        while count < depth*500: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, depth)
             #print("complete simulation" + str(count))
@@ -128,3 +126,8 @@ class POMCP():
 
 # horizon = depth of a search
 # # of rollouts = # of times search is called
+
+# debug simple rollouts to make sure that it works
+# test different exploration rates
+# check to see if current node is preserved
+# this weeks tasks
