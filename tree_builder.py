@@ -31,6 +31,7 @@ class Node():
         self.children: dict[int, Node] = defaultdict(lambda: None)
 
         self.id = parent_id + str(parent_a)
+        self.encode()
 
     def encode(self):
         """
@@ -38,9 +39,8 @@ class Node():
         
         used for tracking purposes by pomcp
         """
+        self.encoding = ""
         self.encoding += str(self.agent_pos[0]) + "," + str(self.agent_pos[1]) + "|"
-        self.encoding += str(self.level) + "|"
-        self.encoding += str(len(self.obs)) + "|"
 
         obs_list = list(self.obs)
         obs_list = sorted(obs_list)

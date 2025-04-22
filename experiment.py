@@ -1,5 +1,5 @@
 from generator import Generator
-from pomcp import POMCP
+from pomcp_copy import POMCP
 from tree_builder import Node
 
 import numpy as np
