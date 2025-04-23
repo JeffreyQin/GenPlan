@@ -164,7 +164,7 @@ class Generator():
 
 
         if exit_state in new_obs:
-            return True, dest, new_obs, new_belief, 0.0
+            return True, dest, new_obs, new_belief, 10.0 #remmeber to change to 0
         else:
             # penalize for step
             return False, dest, new_obs, new_belief, self.penalty

@@ -24,7 +24,7 @@ class Node():
 
         self.agent_pos: tuple[int, int] = agent_pos
         self.obs: set[tuple[int, int]] = obs
-        self.num_visited: int = 0
+        self.num_visited: int = 1
         self.value: float = 0.0
 
         self.belief: set[tuple[int, int]] = belief

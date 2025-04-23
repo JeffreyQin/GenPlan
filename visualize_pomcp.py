@@ -58,6 +58,9 @@ def run_experiment():
     running = True
     exit_found = False
 
+    count = 0
+    cycle_length = 5
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -69,11 +72,15 @@ def run_experiment():
                     # POMCP search returns an action (int)
 
                     #action_values: list[float] = list()
-                    action = pomcp_algorithm.search(current_node)
-                    # for a in range(4):
-                    #     action_values.append(current_node.children[a].value)
+                    if(count % cycle_length == 0):
+                        action = pomcp_algorithm.search(current_node)
+                    else:
+                        action_values = []
+                        for a in range(4):
+                            action_values.append(current_node.children[a].value)
 
-                    # action :int = action_values.index(max(action_values))
+                        action :int = action_values.index(max(action_values))
+                    
                     print(f"POMCP selected action: {Action(action).name}")
 
                     # Update the state using the generator's generate function
@@ -84,6 +91,8 @@ def run_experiment():
                     current_node = current_node.children[action]
                     if exit_found:
                         print("Exit found!")
+                    
+                    count += 1
 
         # Drawing routine
         screen.fill(WHITE)

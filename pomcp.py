@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 0.05, epsilon = 0.001, depth = 100):
+    def __init__(self, generator, discount, exploration = 50, epsilon = 0.001, depth = 25):
         """
         generator - black box generator
 
@@ -24,7 +24,23 @@ class POMCP():
         self.depth_limit: int = depth
 
         # used to track which nodes are currently in the tree
-        self.tree: set[str] = set()
+        #self.tree: set[str] = set()
+        self.tree: dict[tuple[int,int], list[Node]] = dict()#surely theres a better way to do this
+
+    def is_in_tree(self, node: Node):
+        """
+        accepts a node and first comapres to see whether the agent position is in the tree then look for nodes w/ the same belief and same agent_pos. Returns false and None if not in the tree, returns the 
+        node and True if node is found ot be in the tree
+        """
+        if(node.agent_pos in self.tree):
+            belief_checklist = self.tree[node.agent_pos]
+            for n in belief_checklist:
+                if(node.obs == n.obs):
+                    return True, n
+
+            return False, None
+        else:
+            return False, None
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int)->float:
         """
@@ -39,7 +55,7 @@ class POMCP():
 
         if exit_found:
             print("exit found!")
-            return 0
+            return 10 #remember to change to 0
         else:
             temp_node = Node(new_pos, new_obs, new_belief, node.id, random_action)
             return reward + self.rollout(temp_node, state, depth + 1)
@@ -49,16 +65,24 @@ class POMCP():
         """
         simulate function for searching
         """
-        if node.id not in self.tree:
-            self.tree.add(node.id)
+        in_tree, n = self.is_in_tree(node)
+        node.num_visited += 1
 
-            node.num_visited += 1
+        if(depth > self.depth_limit):
+            return 0
+
+        if not in_tree:
+            if(node.agent_pos in self.tree):
+                self.tree[node.agent_pos].append(node)
+            else:
+                self.tree[node.agent_pos] = [node] #add it to the tree
 
             for a in range(4):
                 _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node, a)
                 node.children[a] = Node(new_pos, new_obs, new_belief, node.id, a)
             return self.rollout(node, state, depth)
         else:
+            node = n
             action_values: list[float] = list()
             for a in range(4):
                 action_values.append(self.UCB1(node, a))
@@ -66,15 +90,20 @@ class POMCP():
             chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
             exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, chosen_a)
 
-            if(exit_found):
-                print("exit found")
             
             node.children[chosen_a].obs = new_obs
             node.children[chosen_a].agent_pos = new_pos
 
-            node.num_visited += 1
+            in_tree, n = self.is_in_tree(node.children[chosen_a])
+            if(in_tree):
+                node.children[chosen_a] = n
 
-            reward = reward + self.simulate(state, node.children[chosen_a], depth + 1)
+
+            #node.num_visited += 1
+            if(exit_found):
+                reward = 10
+            else:
+                reward = reward + self.simulate(state, node.children[chosen_a], depth + 1)
 
             node.children[chosen_a].value = node.children[chosen_a].value + (reward - node.children[chosen_a].value)/node.children[chosen_a].num_visited
 
@@ -114,9 +143,9 @@ class POMCP():
         depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
 
         count = 0
-        while count < depth*500: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+        while count < depth*100: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
             state: tuple[int, int] = random.choice(list(root.belief))
-            self.simulate(state, root, depth)
+            self.simulate(state, root, 0)
             #print("complete simulation" + str(count))
             count += 1
 
