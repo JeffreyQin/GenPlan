@@ -1,4 +1,5 @@
 import numpy as np
+from collections import defaultdict
 
 from tree_builder import Cell, Action
 
@@ -14,28 +15,37 @@ class ValueIteration():
         self.converge_tol = tol
 
      
-    def mark_fragment_entrances(self, map, fragment, partitions):
+    def get_fragment_entrances(self, map, fragment, partitions):
         
-        for par in partitions:
-            if par['rotations'] == 1 or par['rotations'] == 3:
+        entrances = set()
+        entrance_to_part = dict()
+        part_visited = defaultdict(lambda: False)
+
+        for part in partitions:
+            if part['rotations'] == 1 or part['rotations'] == 3:
                 height, width = fragment.shape[1], fragment.shape[0]
-            elif par['rotations'] == 0 or par['rotations'] == 2:
+            elif part['rotations'] == 0 or part['rotations'] == 2:
                 height, width = fragment.shape[0], fragment.shape[1]
         
-            top_left = par['top_left']
+            top_left = part['top left']
             bottom_right = (top_left[0] + height - 1, top_left[1] + width - 1)
 
             for r in range(top_left[0], bottom_right[0] + 1):
                 if map[r, top_left[1]] != Cell.WALL.value:
-                    map[r, top_left[1]] = Cell.ENTRANCE.value
+                    entrances.add((r, top_left[1]))
+                    entrance_to_part[(r, top_left[1])] = part['top left']
                 elif map[r, bottom_right[1]] != Cell.WALL.value:
-                    map[r, bottom_right[1]] = Cell.ENTRANCE.value
+                    entrances.add((r, bottom_right[1]))
+                    entrance_to_part[(r, bottom_right[1])] = part['top left']
             for c in range(top_left[1], bottom_right[1] + 1):
                 if map[top_left[0], c] != Cell.WALL.value:
-                    map[top_left[0], c] = Cell.ENTRANCE.value
+                    entrances.add((top_left[0], c))
+                    entrance_to_part[(top_left[0], c)] = part['top left']
                 elif map[bottom_right[0], c] != Cell.WALL.value:
-                    map[bottom_right[0], c] = Cell.ENTRANCE.value
-
+                    entrances.add((bottom_right[0], c))
+                    entrance_to_part[(bottom_right[0], c)] = part['top left']
+        
+        return entrances, entrance_to_part, part_visited
 
 
     def get_destination(self, map, pos, action):
@@ -58,7 +68,7 @@ class ValueIteration():
         return dest
     
 
-    def generate_policy(self, map):
+    def generate_policy(self, map, entrances):
     
         height, width = map.shape
 
@@ -68,11 +78,11 @@ class ValueIteration():
         
         for r in range(height):
             for c in range(width):
-                if map[r, c] == Cell.WALL.value:
+                if (r, c) in entrances:
+                    rewards[r, c] = 100.0
+                elif map[r, c] == Cell.WALL.value:
                     rewards[r, c] = -100.0
                     policy[r, c] = None
-                elif map[r, c] == Cell.ENTRANCE.value:
-                    rewards[r, c] = 100.0
                 else:
                     rewards[r, c] = -1.0
 
@@ -102,4 +112,27 @@ class ValueIteration():
                 break
         return policy, num_iter
                             
-        
+    
+    def perform_search(self, map, policy, pos, entrances, entrance_to_part, part_visited):
+
+        while True:
+            new_pos = self.get_destination(map, pos, policy[pos[0]][pos[1]])
+
+            if new_pos == pos:
+                break
+            elif new_pos in entrances: # if arrived at entrance
+                part = entrance_to_part[new_pos]
+
+                to_be_removed = set()
+                for entr in entrances:
+                    if entrance_to_part[entr] == part:
+                        to_be_removed.add(entr)
+                for entr in to_be_removed:
+                    entrances.remove(entr)
+
+                part_visited[part] = True
+                print("arrived at entrance " + str(new_pos))
+                break
+            
+            pos = new_pos
+                

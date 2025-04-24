@@ -4,7 +4,7 @@ from tree_builder import Cell, Action, Node
 
 class Generator():
 
-    def __init__(self, map, agent_r, penalty):
+    def __init__(self, map, agent_r, penalty = -1.0):
         
         self.map: list[list[int]] = map
         self.map_dims: tuple[int, int] = map.shape
