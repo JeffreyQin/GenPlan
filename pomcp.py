@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 50, epsilon = 0.001, depth = 25):
+    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 11): #set depth to high
         """
         generator - black box generator
 
@@ -24,23 +24,23 @@ class POMCP():
         self.depth_limit: int = depth
 
         # used to track which nodes are currently in the tree
-        #self.tree: set[str] = set()
-        self.tree: dict[tuple[int,int], list[Node]] = dict()#surely theres a better way to do this
+        self.tree: set[str] = set()
+        #self.tree: dict[tuple[int,int], list[Node]] = dict()#surely theres a better way to do this
 
-    def is_in_tree(self, node: Node):
-        """
-        accepts a node and first comapres to see whether the agent position is in the tree then look for nodes w/ the same belief and same agent_pos. Returns false and None if not in the tree, returns the 
-        node and True if node is found ot be in the tree
-        """
-        if(node.agent_pos in self.tree):
-            belief_checklist = self.tree[node.agent_pos]
-            for n in belief_checklist:
-                if(node.obs == n.obs):
-                    return True, n
+    # def is_in_tree(self, node: Node):
+    #     """
+    #     accepts a node and first comapres to see whether the agent position is in the tree then look for nodes w/ the same belief and same agent_pos. Returns false and None if not in the tree, returns the 
+    #     node and True if node is found ot be in the tree
+    #     """
+    #     if(node.agent_pos in self.tree):
+    #         belief_checklist = self.tree[node.agent_pos]
+    #         for n in belief_checklist:
+    #             if(node.obs == n.obs):
+    #                 return True, n
 
-            return False, None
-        else:
-            return False, None
+    #         return False, None
+    #     else:
+    #         return False, None
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int)->float:
         """
@@ -54,8 +54,8 @@ class POMCP():
         exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, random_action)
 
         if exit_found:
-            print("exit found!")
-            return 10 #remember to change to 0
+            #print("exit found!")
+            return 0 #remember to change to 0
         else:
             temp_node = Node(new_pos, new_obs, new_belief, node.id, random_action)
             return reward + self.rollout(temp_node, state, depth + 1)
@@ -65,47 +65,59 @@ class POMCP():
         """
         simulate function for searching
         """
-        in_tree, n = self.is_in_tree(node)
+        #in_tree, n = self.is_in_tree(node)
         node.num_visited += 1
 
+        # print(f"\n--- Simulating from state {state} at depth {depth} ---")
+        # print(f"Node ID: {node.id}, Visited: {node.num_visited}")
         if(depth > self.depth_limit):
             return 0
 
-        if not in_tree:
-            if(node.agent_pos in self.tree):
-                self.tree[node.agent_pos].append(node)
-            else:
-                self.tree[node.agent_pos] = [node] #add it to the tree
+        if not node.id in self.tree:
+            #print("Node is new, expanding")
+            self.tree.add(node.id)
+            # if(node.agent_pos in self.tree):
+            #     self.tree[node.agent_pos].append(node)
+            # else:
+            #     self.tree[node.agent_pos] = [node] #add it to the tree
 
             for a in range(4):
                 _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node, a)
                 node.children[a] = Node(new_pos, new_obs, new_belief, node.id, a)
+
             return self.rollout(node, state, depth)
         else:
-            node = n
+            #node = n
+            #print("its not just rollouts dw ")
+
             action_values: list[float] = list()
             for a in range(4):
                 action_values.append(self.UCB1(node, a))
 
             chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
+
+            # print(f"UCB1 values: {action_values}")
+            # print(f"Chosen action: {chosen_a}")
+
             exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, chosen_a)
 
             
             node.children[chosen_a].obs = new_obs
             node.children[chosen_a].agent_pos = new_pos
 
-            in_tree, n = self.is_in_tree(node.children[chosen_a])
-            if(in_tree):
-                node.children[chosen_a] = n
+            # in_tree, n = self.is_in_tree(node.children[chosen_a])
+            # if(in_tree):
+            #     node.children[chosen_a] = n
 
 
             #node.num_visited += 1
             if(exit_found):
-                reward = 10
+                reward = 0
+                node.children[chosen_a].num_visited += 1
             else:
                 reward = reward + self.simulate(state, node.children[chosen_a], depth + 1)
 
-            node.children[chosen_a].value = node.children[chosen_a].value + (reward - node.children[chosen_a].value)/node.children[chosen_a].num_visited
+            node.action_values[chosen_a] = node.action_values[chosen_a] + (reward - node.action_values[chosen_a])/node.children[chosen_a].num_visited
 
             return reward
         
@@ -114,7 +126,7 @@ class POMCP():
         if node.children[action].num_visited == 0: # unvisited action
             return float('inf')
         else:
-            return node.children[action].value + self.c * math.sqrt(
+            return node.action_values[action] + self.c * math.sqrt(
                     math.log(node.num_visited) / node.children[action].num_visited)
         
 
@@ -122,15 +134,15 @@ class POMCP():
         """
         Small helper function to find the action with the largest value given the node
         """
-        action_values:list[float] = [
-            root.children[0].value,
-            root.children[1].value,
-            root.children[2].value,
-            root.children[3].value
-        ]
+        # action_values:list[float] = [
+        #     root.children[0].value,
+        #     root.children[1].value,
+        #     root.children[2].value,
+        #     root.children[3].value
+        # ]
         print("Action values")
-        print(action_values)
-        best_action:int = action_values.index(max(action_values))
+        print(root.action_values)
+        best_action:int = root.action_values.index(max(root.action_values))
         print("Best action")
         print(best_action)
         return best_action
@@ -143,7 +155,7 @@ class POMCP():
         depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
 
         count = 0
-        while count < depth*100: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
+        while count < depth*1100: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             #print("complete simulation" + str(count))
@@ -156,7 +168,7 @@ class POMCP():
 # horizon = depth of a search
 # # of rollouts = # of times search is called
 
-# debug simple rollouts to make sure that it works
-# test different exploration rates
-# check to see if current node is preserved
+# debug simple rollouts to make sure that it works (Rollouts work)
+# test different exploration rates (super lost)
+# check to see if current node is preserved (FIGURED THIS OUT)
 # this weeks tasks
