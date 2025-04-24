@@ -8,8 +8,8 @@ class ValueIteration():
     def __init__(self, epsilon = 0.9, gamma = 0.9, tol = 0.01):
 
         self.epsilon = epsilon
-        self.pr_best = epsilon + (1 - epsilon)/4
-        self.pr_others = (1 - epsilon) / 4
+        self.prob_best = epsilon + (1 - epsilon)/4
+        self.prob_others = (1 - epsilon) / 4
         self.gamma = gamma
         self.converge_tol = tol
 
@@ -38,22 +38,23 @@ class ValueIteration():
 
 
 
-    def is_terminal(self, map, r, c):
-        if map[r, c] != Cell.WALL.value or map[r, c] != Cell.ENTRANCE.value:
-            return True
-        else:
-            return False
-    
     def get_destination(self, map, pos, action):
+
+        dest = pos 
         
-        if action == Action.UP.value and pos[0] > 0:
-            dest = (pos[0] - 1, pos[1])
-        elif action == Action.RIGHT.value and pos[0] < map[0] - 1:
-            dest = (pos[0], pos[1] + 1)
-        elif action == Action.DOWN.value and pos[1] > 0:
-            dest = (pos[0] + 1, pos[1])
-        elif action == Action.LEFT.value and pos[1] < map[1] - 1:
-            dest = (pos[0], pos[1] - 1)
+        if action == Action.UP.value:
+            if pos[0] > 0 and map[pos[0] - 1, pos[1]] != Cell.WALL.value:
+                dest = (pos[0] - 1, pos[1])
+        elif action == Action.RIGHT.value:
+            if pos[1] < map.shape[1] - 1 and map[pos[0], pos[1] + 1] != Cell.WALL.value:
+                dest = (pos[0], pos[1] + 1)
+        elif action == Action.DOWN.value:
+            if pos[0] < map.shape[0] - 1 and map[pos[0] + 1, pos[1]] != Cell.WALL.value:
+                dest = (pos[0] + 1, pos[1])
+        elif action == Action.LEFT.value:
+            if pos[1] > 0 and map[pos[0], pos[1] - 1] != Cell.WALL.value:
+                dest = (pos[0], pos[1] - 1)
+        
         return dest
     
 
@@ -62,36 +63,39 @@ class ValueIteration():
         height, width = map.shape
 
         rewards = np.zeros((height, width))
+        V = np.zeros((height, width))
+        policy = np.zeros((height, width))
+        
         for r in range(height):
             for c in range(width):
                 if map[r, c] == Cell.WALL.value:
-                    rewards[r, c] == float('-inf')
+                    rewards[r, c] = -100.0
+                    policy[r, c] = None
                 elif map[r, c] == Cell.ENTRANCE.value:
-                    rewards[r, c] == 100.0
+                    rewards[r, c] = 100.0
                 else:
-                    rewards[r, c] == -1.0
-        
-        V = np.zeros((height, width))
-        policy = np.zeros((height, width))
+                    rewards[r, c] = -1.0
+
+
         actions = [a for a in range(4)]
-        
+
         num_iter = 0
         while True:
             oldV = V.copy()
             for r in range(height):
                 for c in range(width):
-                    if not self.is_terminal(map, r, c):
+                    if map[r, c] != Cell.WALL.value:
                         Q = dict()
                         for a in actions:
-                            (new_r, new_c) = self.get_destination(r, c, a)
-                            Q[a] = rewards[r, c] + self.gamma * self.pr_best * oldV[new_r, new_c]
+                            (new_r, new_c) = self.get_destination(map, (r, c), a)
+                            Q[a] = rewards[r, c] + self.gamma * self.prob_best * oldV[new_r, new_c]
 
                             for other_a in actions:
                                 if other_a != a:
-                                    (other_new_r, other_new_c) = self.get_destination(r, c, other_a)
-                                    Q[a] += self.gamma * self.pr_others * oldV[other_new_r, other_new_c]
+                                    (other_new_r, other_new_c) = self.get_destination(map, (r, c), other_a)
+                                    Q[a] += self.gamma * self.prob_others * oldV[other_new_r, other_new_c]
                         
-                        V[r, c] = max(Q.values)
+                        V[r, c] = max(Q.values())
                         policy[r, c] = max(Q, key = Q.get)
             num_iter += 1
             if (abs(oldV[:, :] - V[:, :]) < self.converge_tol).all():
