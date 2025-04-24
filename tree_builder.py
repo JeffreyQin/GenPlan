@@ -8,6 +8,7 @@ class Cell(Enum):
     UNOBSERVED = 2
     AGENT = 3
     EXIT = 4
+    ENTRANCE = 5
 
 class Action(Enum):
     UP = 0
