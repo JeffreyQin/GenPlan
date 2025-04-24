@@ -15,26 +15,21 @@ GRAY = (200, 200, 200)
 
 # Define the map as a NumPy array
 input_maps = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 0],
-    [0, 2, 0, 0, 2, 0, 2, 0, 0, 2, 0, 0, 2, 0],
-    [0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0],
-    [0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0],
-    [0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0],
-    [0, 2, 0, 0, 2, 0, 0, 2, 2, 0, 2, 0, 2, 0],
-    [0, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0],
-    [0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0],
-    [0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0],
-    [0, 0, 0, 0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0],
-    [0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0],
-    [0, 2, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 0],
-    [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0],
+    [0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0],
+    [0, 2, 0, 0, 0, 2, 0, 0, 2, 2, 0],
+    [0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 0],
+    [0, 2, 0, 2, 0, 0, 2, 0, 2, 0, 0],
+    [0, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0],
+    [0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0],
+    [0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0],
+    [0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ])
 
 
 # Initial parameters
-agent_start_pos = (6, 8)
+agent_start_pos = (2, 1)
 exit_state = (0, 0)  # Set exit state as desired
 range_sight = 5
 penalty = -1.0
@@ -59,7 +54,7 @@ def run_experiment():
     exit_found = False
 
     count = 0
-    cycle_length = 5
+    cycle_length = 1
 
     while running:
         for event in pygame.event.get():
@@ -77,7 +72,7 @@ def run_experiment():
                     else:
                         action_values = []
                         for a in range(4):
-                            action_values.append(current_node.children[a].value)
+                            action_values.append(current_node.action_values[a])
 
                         action :int = action_values.index(max(action_values))
                     
@@ -86,12 +81,17 @@ def run_experiment():
                     # Update the state using the generator's generate function
                     exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate(exit_state, current_node, action)
                     print(f"Agent moved to {new_agent_pos}, reward: {reward}")
+                    print(current_node.action_values)
 
                     # Update the current node with new state values
                     current_node = current_node.children[action]
+                    current_node.obs = new_obs
+                    current_node.belief = new_belief
                     if exit_found:
                         print("Exit found!")
                     
+                    #pomcp_algorithm.depth_limit -= 1
+
                     count += 1
 
         # Drawing routine
