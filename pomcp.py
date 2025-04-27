@@ -51,7 +51,7 @@ class POMCP():
         
         random_action = random.randint(0,3)
 
-        exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, random_action)
+        exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node.agent_pos, node.obs, node.belief, random_action)
 
         if exit_found:
             #print("exit found!")
@@ -82,7 +82,7 @@ class POMCP():
             #     self.tree[node.agent_pos] = [node] #add it to the tree
 
             for a in range(4):
-                _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node, a)
+                _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node.agent_pos, node.obs, node.belief, a)
                 node.children[a] = Node(new_pos, new_obs, new_belief, node.id, a)
 
             return self.rollout(node, state, depth)
@@ -99,7 +99,7 @@ class POMCP():
             # print(f"UCB1 values: {action_values}")
             # print(f"Chosen action: {chosen_a}")
 
-            exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node, chosen_a)
+            exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node.agent_pos, node.obs, node.belief, chosen_a)
 
             
             node.children[chosen_a].obs = new_obs

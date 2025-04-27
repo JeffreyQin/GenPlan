@@ -1,6 +1,6 @@
 
 from collections import defaultdict
-from tree_builder import Cell, Action, Node
+from tree_builder import Cell, Action
 
 class Generator():
 
@@ -121,18 +121,14 @@ class Generator():
                 belief.add(room)
 
         return obs, belief
+    
 
-
-    def generate(self, exit_state: tuple[int, int], node: Node, action: int):
+    def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], curr_belief: set[tuple[int, int]], action: int):
         """
         runs black box generator by performing input action on current position and observation
 
         return new position, observation, and reward
         """
-
-        agent_pos: tuple[int, int] = node.agent_pos
-        curr_obs: set[tuple[int, int]] = node.obs
-        curr_belief: set[tuple[int, int]] = node.belief
 
         dest = (agent_pos[0], agent_pos[1])
         if action == Action.UP.value:
