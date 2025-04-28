@@ -111,7 +111,7 @@ class Tree():
                         subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
                     continue
             
-            for path, path_obs in self.next_path(updated_map, agent_pos):
+            for path, path_obs in self.next_path(updated_map, agent_pos, segmentation):
                 branch = {
                     'pos': path[-1],
                     'remains': self.nodes[node_id]['remains'] - len(path_obs),
@@ -142,7 +142,7 @@ class Tree():
         return (init_pos)
 
 
-    def next_path(self, map: list[list[int, int]], pos: tuple[int, int]):
+    def next_path(self, map: list[list[int, int]], pos: tuple[int, int], segmentation):
 
         (height, width) = map.shape
 
@@ -165,7 +165,7 @@ class Tree():
                 # if new observation is made, then we have a path
                 new_obs = self.get_observation(map, (r, c))
 
-                if new_obs:
+                if new_obs or (r, c) in segmentation:
                     if (r, c) in obs.get(frozenset(new_obs), set()):
                         continue
 

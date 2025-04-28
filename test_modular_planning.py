@@ -6,22 +6,20 @@ def step_heuristic(tree, segmentation, node_id):
     steps = tree.nodes[node_id]["steps_from_parent"]
 
     if tree.nodes[node_id]['pos'] in segmentation.keys():
-        print(True)
-        print(tree.nodes[node_id]['pos'])
-        return steps
+        return steps, [tree.nodes[node_id]['pos']]
     else:
-        print(False)
         curr_min = float('inf')
         curr_min_child = None
+        curr_min_path = None
         for child_id in tree.nodes[node_id]['children']:
-            print(child_id)
-            subsequent_steps = step_heuristic(tree, segmentation, child_id)
+            subsequent_steps, subsequent_path = step_heuristic(tree, segmentation, child_id)
             if subsequent_steps < curr_min:
-                print("True")
+   
                 curr_min = subsequent_steps
                 curr_min_child = tree.nodes[child_id]['pos']
-        print(curr_min_child)
-        return steps + curr_min
+                curr_min_path = subsequent_path
+
+        return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
        
 
 
@@ -94,12 +92,13 @@ def test_single_iteration():
 
     segmentation = segment_map(fragment, copies)
 
-    subtrees = set()
+    subtrees = dict()
     copies_unexplored = set()
     tree = Tree(map, fragment, segmentation, copies_unexplored, subtrees)
-
-    print(tree.nodes[3]['pos'])
+    
+    print('nearest fragment path from ' + str((5,6)))
     result = step_heuristic(tree, segmentation, 0)
 
+    print(result)
 
 test_single_iteration()
