@@ -1,5 +1,6 @@
 from enum import Enum
 from collections import defaultdict, deque
+import numpy as np
 
 class Cell(Enum):
     WALL = 0
@@ -51,10 +52,16 @@ class Node():
 
 class Tree():
 
-    def __init__(self, map, fragment, segmentation):
+    def __init__(self, map, fragment, segmentation, copies_explored, subtrees):
+        """
+        map: current state of the map
+        segmentation: mapping of each coordinate (r, c) to its corresponding fragment copy
+        copies_explored: set of already explored fragment copies - will be ignored by planning
+        subtrees: already constructed subtrees
+        
+        """
 
-        self.subtrees = {}
-        self.height, self.width = map.shape[0], map.shape[1]
+        (self.height, self.width) = map.shape
         
         # determine start position
         num_unobserved = 0
@@ -66,62 +73,65 @@ class Tree():
                     num_unobserved += 1
 
         obs = self.get_observation(map, agent_pos)
-        map = self.update_map(map, agent_pos, agent_pos)
+        updated_map = self.update_map(map, agent_pos, agent_pos)
         num_unobserved -= len(obs)
 
-        self.tree = {0: {'pos': agent_pos,
+        self.nodes = {
+            0: {
+                'pos': agent_pos,
                 'remains': num_unobserved,
-                'path_from_par': [],
+                'path_from_parent': [],
                 'path_from_root': [],
-                'steps_from_par': 0,
+                'steps_from_parent': 0,
                 'steps_from_root': 0,
-                'celldistances': set(),
-                'children': set(),
-                'pid': None,
+                'path_observation': set(),
+                'parent_id': None, # parent node id
                 'depth': 0,
-                'copies_explored': [],
-                }}
+                'map': updated_map,
+                'children': set()
+            }
+        }
 
         # bfs queue
         agenda = deque()
-        agenda.append((0, map)) # (node idx, current map)
+        agenda.append((0, map)) # (node id, current map)
 
         while agenda:
 
-            node_idx, updated_map = agenda.popleft()
-            agent_pos = self.tree[node_idx]['pos']
-            node_depth = self.tree[node_idx]['depth']
+            node_id, updated_map = agenda.popleft()
+            agent_pos = self.nodes[node_id]['pos']
+            node_depth = self.nodes[node_id]['depth']
 
             # construct tree node representing current agent pos
             if agent_pos in segmentation.keys():
                 copy, base_r, base_c = segmentation[agent_pos]
-                if copy['top left'] not in self.tree[node_idx]['copies_explored']:
-                    if (base_r, base_c) not in self.subtrees.keys():
+                if copy['top left'] not in copies_explored:
+                    if (base_r, base_c) not in subtrees.keys():
                         # fragment subtree for current pos hasn't been created
-                        self.subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
+                        subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
                     continue
-                    
             
             for path, path_obs in self.next_path(updated_map, agent_pos):
-                branch = {  'pos': path[-1],
-                        'remains': self.tree[node_idx]['remains'] - len(path_obs),
-                        'path_from_par': path,
-                        'path_from_root': self.tree[node_idx]['path_from_root'][:-1] + path,
-                        'steps_from_par': len(path) - 1,
-                        'steps_from_root': self.tree[node_idx]['steps_from_root'] + len(path) - 1,
-                        'celldistances': path_obs,
-                        'children': set(),
-                        'pid': node_idx,
-                        'depth': node_depth + 1,
-                        'map': updated_map, # map where nid started from!
-                        'copies_explored': [corner for corner in self.tree[node_idx]['copies_explored']]
-                    }
-                
-                new_node_idx = max(self.tree) + 1
-                agenda.append((new_node_idx, self.update_map(updated_map, path[0], path[-1])))
+                branch = {
+                    'pos': path[-1],
+                    'remains': self.nodes[node_id]['remains'] - len(path_obs),
+                    'path_from_parent': path,
+                    'path_from_root': self.nodes[node_id]['path_from_root'][:-1] + path,
+                    'steps_from_parent': len(path) - 1,
+                    'steps_from_root': self.nodes[node_id]['steps_from_root'] + len(path) - 1,
+                    'path_observation': path_obs,
+                    'parent_id': node_id,
+                    'depth': node_depth + 1,
+                    'map': updated_map, # previous map
+                    'children': set()
+                }
 
-                self.tree[node_idx]['children'].add(new_node_idx)
-                self.tree[new_node_idx] = branch
+                new_node_id = max(self.nodes) + 1
+                updated_map = self.update_map(updated_map, path[0], path[-1])
+                agenda.append((new_node_id, updated_map))
+                
+                self.nodes[node_id]['children'].add(new_node_id)
+                self.nodes[new_node_id] = branch
 
     
     
@@ -129,7 +139,7 @@ class Tree():
         """
         method to construct fragment planning subtree 
         """
-        return fragment
+        return (init_pos)
 
 
     def next_path(self, map: list[list[int, int]], pos: tuple[int, int]):
@@ -137,7 +147,7 @@ class Tree():
         (height, width) = map.shape
 
         agenda = deque()
-        agenda.append([[pos]])
+        agenda.append([pos])
         obs = dict()
 
         while agenda:
@@ -156,10 +166,10 @@ class Tree():
                 new_obs = self.get_observation(map, (r, c))
 
                 if new_obs:
-                    if (r, c) in obs.get(frozenset(obs), set()):
+                    if (r, c) in obs.get(frozenset(new_obs), set()):
                         continue
 
-                    obs.setdefault(frozenset(new_obs), set()).add(r, c)
+                    obs.setdefault(frozenset(new_obs), set()).add((r, c))
                     yield path + [(r, c)], new_obs
                 else:
                     agenda.append(path + [(r, c)])
@@ -179,12 +189,12 @@ class Tree():
             columns = []
             for c_ in range(c, c_left-1, -1):
 
-                if self.map[r_][c_] == Cell.WALL.value:
+                if map[r_][c_] == Cell.WALL.value:
                     break
 
                 columns.append(c_)
 
-                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                if map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
             
             if not columns:
@@ -193,18 +203,18 @@ class Tree():
             c_left = columns[-1]
 
         # 2nd quadrant
-        c_right = self.map_dims[1] - 1
+        c_right = map.shape[1] - 1
 
         for r_ in range(r, -1, -1):
             columns = []
             for c_ in range(c, c_right+1):
 
-                if self.map[r_][c_] == Cell.WALL.value:
+                if map[r_][c_] == Cell.WALL.value:
                     break
 
                 columns.append(c_)
 
-                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                if map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
 
             if not columns:
@@ -215,17 +225,17 @@ class Tree():
         # 3rd quadrant
         c_left = 0
         
-        for r_ in range(r, self.map_dims[0]):
+        for r_ in range(r, map.shape[0]):
             columns = []
 
             for c_ in range(c, c_left-1, -1):
 
-                if self.map[r_][c_] == Cell.WALL.value:
+                if map[r_][c_] == Cell.WALL.value:
                     break
 
                 columns.append(c_)
 
-                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                if map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
             
             if not columns:
@@ -234,18 +244,18 @@ class Tree():
             c_left = columns[-1]
 
         # 4th quadrant
-        c_right = self.map_dims[1] - 1
+        c_right = map.shape[1] - 1
         
-        for r_ in range(r, self.map_dims[0]):
+        for r_ in range(r, map.shape[0]):
             columns = []
             for c_ in range(c, c_right+1):
 
-                if self.map[r_][c_] == Cell.WALL.value:
+                if map[r_][c_] == Cell.WALL.value:
                     break
 
                 columns.append(c_)
 
-                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                if map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
 
             if not columns:
@@ -260,9 +270,11 @@ class Tree():
 
         obs = self.get_observation(map, new_pos)
         
-        updated_map = [[Cell.OBSERVED.value if (r, c) in obs else map[r, c]
-                        for c in range(self.width)]
-                        for r in range(len(self.height))]
+        updated_map = np.array(
+            [[Cell.OBSERVED.value if (r, c) in obs else map[r, c]
+                    for c in range(self.width)]
+                    for r in range(self.height)]
+        )
         
         updated_map[old_pos[0], old_pos[1]] = Cell.OBSERVED.value
         

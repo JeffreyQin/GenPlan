@@ -1,3 +1,11 @@
+"""
+
+proof-of-concept value iteration in a non-tree implementation
+- does not implement observation mechanism
+
+"""
+
+
 import numpy as np
 from collections import defaultdict
 
