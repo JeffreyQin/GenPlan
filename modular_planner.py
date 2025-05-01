@@ -66,25 +66,32 @@ def fragment_to_map_coords(fragment, copy):
    return frag_to_map
 
 
-def step_heuristic(tree, segmentation, node_id):
+def step_heuristic(tree, segmentation, copies_explored, node_id):
     steps = tree.nodes[node_id]["steps_from_parent"]
 
     if tree.nodes[node_id]['pos'] in segmentation.keys():
-        return steps, [tree.nodes[node_id]['pos']]
-    else:
-        curr_min = float('inf')
-        curr_min_path = None
-        for child_id in tree.nodes[node_id]['children']:
-            subsequent_steps, subsequent_path = step_heuristic(tree, segmentation, child_id)
-            if subsequent_steps < curr_min:
-                curr_min = subsequent_steps
-                curr_min_path = subsequent_path
+        copy, _, _ = segmentation[tree.nodes[node_id]['pos']]
+        if copy['top left'] not in copies_explored:
+            return steps, [tree.nodes[node_id]['pos']]
+        
+    curr_min = float('inf')
+    curr_min_path = None
+    for child_id in tree.nodes[node_id]['children']:
+        subsequent_steps, subsequent_path = step_heuristic(tree, segmentation, copies_explored, child_id)
+        if subsequent_steps < curr_min:
+            curr_min = subsequent_steps
+            curr_min_path = subsequent_path
 
-        return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
-    
+    return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
 
-def fragment_planning(root_node: Node, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+
+def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
     generator = Generator(fragment)
+    
+    if agent_pos not in subtrees.keys():
+        init_obs, init_belief = generator.get_init_state(agent_pos)
+        subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
+    root_node = subtrees[agent_pos]
 
     pomcp_algorithm = POMCP(generator, discount = 0)
     pomcp_algorithm.search(root_node)
@@ -101,9 +108,7 @@ def fragment_planning(root_node: Node, fragment: list[list[int, int]], agent_pos
             a_optimal: int = a_values.index(max(a_values))
             node_ptr = node_ptr.children[a_optimal]
     
-    print("path inside fragment")
-    print(path)
-    return path[-1]
+    return path
 
 
 def modular_planning(map, fragment, copies):
@@ -118,25 +123,27 @@ def modular_planning(map, fragment, copies):
         closest_fragment_tree = Tree(map, fragment, segmentation, copies_explored, subtrees)
         init_pos = closest_fragment_tree.init_pos
 
-        steps, path = step_heuristic(closest_fragment_tree, segmentation, node_id=0)
+        steps, path = step_heuristic(closest_fragment_tree, segmentation, copies_explored, node_id=0)
 
         print("path to closest fragment")
         print(path)
 
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
+
+        fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
+        fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
+                         for (r, c) in fragment_path]
+
+        print("path inside this fragment")
+        print(fragment_path)
         
-        # subtree with this entrance doesn't exist
-        if (base_r, base_c) not in subtrees.keys():
-            subtrees[(base_r, base_c)] = Node(entrance)
-
-        exit = fragment_planning(subtrees[(base_r, base_c)], fragment, entrance)
-        exit = fragment_to_map_coords(fragment, copy)[exit[0], exit[1]]
-
         copies_explored.add(copy['top left'])
 
         map[init_pos[0], init_pos[1]] = Cell.UNOBSERVED.value
-        map[exit[0], exit[1]] = Cell.AGENT.value
+        map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
+
+
 
     print('all fragments explored')
         

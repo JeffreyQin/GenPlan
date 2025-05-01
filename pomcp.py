@@ -140,11 +140,11 @@ class POMCP():
         #     root.children[2].value,
         #     root.children[3].value
         # ]
-        print("Action values")
-        print(root.action_values)
+        #print("Action values")
+        #print(root.action_values)
         best_action:int = root.action_values.index(max(root.action_values))
-        print("Best action")
-        print(best_action)
+        #print("Best action")
+        #print(best_action)
         return best_action
 
 

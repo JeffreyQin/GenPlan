@@ -97,6 +97,7 @@ class Tree():
         agenda = deque()
         agenda.append((0, map)) # (node id, current map)
 
+
         while agenda:
 
             node_id, updated_map = agenda.popleft()
