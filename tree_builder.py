@@ -22,7 +22,7 @@ class Node():
     Class Node for pomcp
     """
     def __init__(self, agent_pos, obs, belief, parent_id, parent_a):
-
+        
         self.agent_pos: tuple[int, int] = agent_pos
         self.obs: set[tuple[int, int]] = obs
         self.num_visited: int = 0
@@ -69,6 +69,7 @@ class Tree():
             for c in range(self.width):
                 if map[r, c] == Cell.AGENT.value:
                     agent_pos = (r, c)
+                    self.init_pos = (r, c)
                 elif map[r, c] == Cell.UNOBSERVED.value:
                     num_unobserved += 1
 
@@ -105,13 +106,17 @@ class Tree():
             # construct tree node representing current agent pos
             if agent_pos in segmentation.keys():
                 copy, base_r, base_c = segmentation[agent_pos]
-                if copy['top left'] not in copies_explored:
+                if copy['top left'] not in copies_explored:    
+                    """
                     if (base_r, base_c) not in subtrees.keys():
                         # fragment subtree for current pos hasn't been created
                         subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
+                    """
+                    # terminate exploration
                     continue
+                    
             
-            for path, path_obs in self.next_path(updated_map, agent_pos, segmentation):
+            for path, path_obs in self.next_path(updated_map, agent_pos, segmentation, copies_explored):
                 branch = {
                     'pos': path[-1],
                     'remains': self.nodes[node_id]['remains'] - len(path_obs),
@@ -142,7 +147,7 @@ class Tree():
         return (init_pos)
 
 
-    def next_path(self, map: list[list[int, int]], pos: tuple[int, int], segmentation):
+    def next_path(self, map: list[list[int, int]], pos: tuple[int, int], segmentation, copies_explored):
 
         (height, width) = map.shape
 
@@ -165,7 +170,14 @@ class Tree():
                 # if new observation is made, then we have a path
                 new_obs = self.get_observation(map, (r, c))
 
-                if new_obs or (r, c) in segmentation:
+                # if (r,c) is an entrance of unexplored copy, we have a path
+                is_entrance = False
+                if (r, c) in segmentation:
+                    copy, base_r, base_c = segmentation[(r, c)]
+                    if copy['top left'] not in copies_explored:
+                        is_entrance = True
+
+                if new_obs or is_entrance:
                     if (r, c) in obs.get(frozenset(new_obs), set()):
                         continue
 
