@@ -4,6 +4,9 @@ import pygame
 from tree_builder import Cell, Action, Node
 from generator import Generator
 from pomcp import POMCP
+import networkx as nx
+import matplotlib.pyplot as plt
+
 
 # Setup colors and cell size
 CELL_SIZE = 50
@@ -35,6 +38,40 @@ range_sight = 5
 penalty = -1.0
 discount = 0  # Discount factor for POMCP
 
+def build_graph(root):
+    """
+    Traverses the tree starting from root and builds a directed graph.
+    """
+    G = nx.DiGraph()
+    queue = [root]
+
+    while queue:
+        node = queue.pop(0)
+        for action, child in node.children.items():
+            if child is not None:
+                G.add_edge(node.id, child.id, weight=child.num_visited)
+                G.nodes[child.id]['num_visited'] = child.num_visited
+                queue.append(child)
+        G.nodes[node.id]['num_visited'] = node.num_visited
+
+    return G
+
+def draw_graph(G):
+    """
+    Draws the graph with edge thickness based on number of visits.
+    """
+    pos = nx.spring_layout(G)  # or use graphviz_layout for tree shape
+    edges = G.edges(data=True)
+
+    weights = [max(1, data['weight']) for _, _, data in edges]
+    labels = {node: G.nodes[node]['num_visited'] for node in G.nodes}
+
+    nx.draw(G, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=500)
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), width=weights)
+    plt.title("Tree of Node Visits")
+    plt.show()
+
+
 def run_experiment():
     pygame.init()
     rows, cols = input_maps.shape
@@ -49,6 +86,8 @@ def run_experiment():
 
     pomcp_algorithm = POMCP(generator, discount)
     action = pomcp_algorithm.search(current_node)
+
+    root_node:Node = current_node #save the root node so we can draw from it
 
     running = True
     exit_found = False
@@ -79,7 +118,7 @@ def run_experiment():
                     print(f"POMCP selected action: {Action(action).name}")
 
                     # Update the state using the generator's generate function
-                    exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate(exit_state, current_node, action)
+                    exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate(exit_state, current_node.agent_pos, current_node.obs, current_node.belief, action)
                     print(f"Agent moved to {new_agent_pos}, reward: {reward}")
                     print(current_node.action_values)
 
@@ -93,6 +132,9 @@ def run_experiment():
                     #pomcp_algorithm.depth_limit -= 1
 
                     count += 1
+
+                    G = build_graph(root_node)
+                    draw_graph(G)
 
         # Drawing routine
         screen.fill(WHITE)
