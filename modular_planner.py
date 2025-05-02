@@ -7,7 +7,6 @@ from pomcp import POMCP
 
 
 def segment_map(fragment, copies):
-        
         """
         Creates a dictionary mapping each index pair to its corresponding copy.
         Only indices inside a copy appear in the keys.
@@ -67,13 +66,20 @@ def fragment_to_map_coords(fragment, copy):
 
 
 def step_heuristic(tree, segmentation, copies_explored, node_id):
+    """
+    given closest fragment search tree, return shortest path to closest fragment
+    as a sequence of coordinates
+    """
+    
     steps = tree.nodes[node_id]["steps_from_parent"]
 
+    ## if arrive at fragment entrance
     if tree.nodes[node_id]['pos'] in segmentation.keys():
         copy, _, _ = segmentation[tree.nodes[node_id]['pos']]
         if copy['top left'] not in copies_explored:
             return steps, [tree.nodes[node_id]['pos']]
         
+    ## recursively find next cell in the path
     curr_min = float('inf')
     curr_min_path = None
     for child_id in tree.nodes[node_id]['children']:
@@ -86,8 +92,12 @@ def step_heuristic(tree, segmentation, copies_explored, node_id):
 
 
 def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+    """
+    return the path of exploration within the fragment by pomcp
+    """
     generator = Generator(fragment)
     
+    ## initializing root node of subtree if not already exist
     if agent_pos not in subtrees.keys():
         init_obs, init_belief = generator.get_init_state(agent_pos)
         subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
@@ -99,6 +109,7 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
     node_ptr = root_node
     path = list()
     
+    ## recursively compute next cell in the fragment by optimal action
     while True:
         path.append(node_ptr.agent_pos)
         if len(node_ptr.children) == 0:
@@ -112,6 +123,10 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
 
 
 def modular_planning(map, fragment, copies):
+    """
+    end-to-end planning pipeline of global map
+    goal is to explore all fragment in the global map in the order of step heuristic
+    """
 
     (height, width) = map.shape
     segmentation = segment_map(fragment, copies)
@@ -120,7 +135,7 @@ def modular_planning(map, fragment, copies):
     copies_explored = set()
 
     while len(copies_explored) != len(copies):
-        closest_fragment_tree = Tree(map, fragment, segmentation, copies_explored, subtrees)
+        closest_fragment_tree = Tree(map, segmentation, copies_explored)
         init_pos = closest_fragment_tree.init_pos
 
         steps, path = step_heuristic(closest_fragment_tree, segmentation, copies_explored, node_id=0)
@@ -132,17 +147,19 @@ def modular_planning(map, fragment, copies):
         copy, base_r, base_c = segmentation[entrance]
 
         fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
+
+        ## convert in-fragment path to global map coordinates
         fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
                          for (r, c) in fragment_path]
 
         print("path inside this fragment")
         print(fragment_path)
-        
+
         copies_explored.add(copy['top left'])
 
+        ## relocate agent position in the global map after fragment exploration
         map[init_pos[0], init_pos[1]] = Cell.UNOBSERVED.value
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
-
 
 
     print('all fragments explored')
