@@ -22,7 +22,7 @@ class Node():
     Class Node for pomcp
     """
     def __init__(self, agent_pos, obs, belief, parent_id, parent_a):
-
+        
         self.agent_pos: tuple[int, int] = agent_pos
         self.obs: set[tuple[int, int]] = obs
         self.num_visited: int = 0
@@ -52,7 +52,7 @@ class Node():
 
 class Tree():
 
-    def __init__(self, map, fragment, segmentation, copies_explored, subtrees):
+    def __init__(self, map, segmentation, copies_explored):
         """
         map: current state of the map
         segmentation: mapping of each coordinate (r, c) to its corresponding fragment copy
@@ -69,6 +69,7 @@ class Tree():
             for c in range(self.width):
                 if map[r, c] == Cell.AGENT.value:
                     agent_pos = (r, c)
+                    self.init_pos = (r, c)
                 elif map[r, c] == Cell.UNOBSERVED.value:
                     num_unobserved += 1
 
@@ -96,22 +97,27 @@ class Tree():
         agenda = deque()
         agenda.append((0, map)) # (node id, current map)
 
+
         while agenda:
 
             node_id, updated_map = agenda.popleft()
             agent_pos = self.nodes[node_id]['pos']
             node_depth = self.nodes[node_id]['depth']
 
-            # construct tree node representing current agent pos
+            # if arriving at some (unexplored) fragment entrance, do not explore this node further
             if agent_pos in segmentation.keys():
                 copy, base_r, base_c = segmentation[agent_pos]
-                if copy['top left'] not in copies_explored:
+                if copy['top left'] not in copies_explored:    
+                    """
                     if (base_r, base_c) not in subtrees.keys():
                         # fragment subtree for current pos hasn't been created
                         subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
+                    """
+                    # terminate exploration
                     continue
-            
-            for path, path_obs in self.next_path(updated_map, agent_pos):
+                    
+            # add each path that leads to new observation, or go to some fragment entrance
+            for path, path_obs in self.next_path(updated_map, agent_pos, segmentation, copies_explored):
                 branch = {
                     'pos': path[-1],
                     'remains': self.nodes[node_id]['remains'] - len(path_obs),
@@ -133,16 +139,9 @@ class Tree():
                 self.nodes[node_id]['children'].add(new_node_id)
                 self.nodes[new_node_id] = branch
 
-    
-    
-    def construct_subtree(self, fragment, init_pos):
-        """
-        method to construct fragment planning subtree 
-        """
-        return (init_pos)
 
 
-    def next_path(self, map: list[list[int, int]], pos: tuple[int, int]):
+    def next_path(self, map: list[list[int, int]], pos: tuple[int, int], segmentation, copies_explored):
 
         (height, width) = map.shape
 
@@ -165,7 +164,14 @@ class Tree():
                 # if new observation is made, then we have a path
                 new_obs = self.get_observation(map, (r, c))
 
-                if new_obs:
+                # if (r,c) is an entrance of unexplored copy, we have a path
+                is_entrance = False
+                if (r, c) in segmentation:
+                    copy, base_r, base_c = segmentation[(r, c)]
+                    if copy['top left'] not in copies_explored:
+                        is_entrance = True
+
+                if new_obs or is_entrance:
                     if (r, c) in obs.get(frozenset(new_obs), set()):
                         continue
 
@@ -175,6 +181,7 @@ class Tree():
                     agenda.append(path + [(r, c)])
 
         return []
+    
     
 
     def get_observation(self, map: list[list[int, int]], pos: tuple[int, int]):
