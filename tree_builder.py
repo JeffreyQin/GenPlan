@@ -62,6 +62,7 @@ class Tree():
         """
 
         (self.height, self.width) = map.shape
+        self.fragment_found = 0
         
         # determine start position
         num_unobserved = 0
@@ -114,6 +115,7 @@ class Tree():
                         subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
                     """
                     # terminate exploration
+                    self.fragment_found += 1
                     continue
                     
             # add each path that leads to new observation, or go to some fragment entrance

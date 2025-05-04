@@ -136,6 +136,10 @@ def modular_planning(map, fragment, copies):
 
     while len(copies_explored) != len(copies):
         closest_fragment_tree = Tree(map, segmentation, copies_explored)
+        
+        if closest_fragment_tree.fragment_found == 0:
+            break
+        
         init_pos = closest_fragment_tree.init_pos
 
         steps, path = step_heuristic(closest_fragment_tree, segmentation, copies_explored, node_id=0)
@@ -160,7 +164,6 @@ def modular_planning(map, fragment, copies):
         ## relocate agent position in the global map after fragment exploration
         map[init_pos[0], init_pos[1]] = Cell.UNOBSERVED.value
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
-
 
     print('all fragments explored')
         

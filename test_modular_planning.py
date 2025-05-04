@@ -79,6 +79,41 @@ def test_single_iteration():
         [0, 0, 0, 0, 0, 2, 3]
     ])
 
+    map2 = np.array([
+        [0, 0, 0, 2, 0, 0, 0],
+        [2, 2, 0, 2, 2, 2, 0],
+        [0, 2, 0, 2, 0, 2, 0],
+        [2, 2, 2, 2, 2, 2, 2],
+        [0, 0, 2, 0, 0, 0, 0],
+        [0, 0, 2, 0, 2, 2, 0],
+        [3, 2, 2, 0, 0, 2, 0],
+    ])
+
+   
+    map3 = np.array([
+    [0, 0, 0, 0, 0, 2, 0, 0, 0],
+    [0, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 0, 0, 0, 2, 0, 2, 0],
+    [3, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 0, 0, 2, 0, 0, 2, 0],
+    [0, 2, 0, 0, 2, 0, 2, 2, 2],
+    [0, 2, 0, 0, 2, 0, 0, 2, 0],
+    [0, 2, 0, 2, 2, 2, 0, 2, 0],
+    [0, 0, 0, 0, 2, 0, 0, 0, 0],
+])
+
+    fragment3 = np.array([
+        [0, 0, 0],
+        [2, 2, 0],
+        [0, 2, 0],
+    ])
+
+    copies3 = [
+        {"top left": (0,4), "reflect": False, "rotations": 0},
+        {"top left": (6,3), "reflect": False, "rotations": 0},
+        {"top left": (4,6), "reflect": False, "rotations": 0}
+    ]
+
     fragment = np.array([
         [0, 0, 0, 0, 0],
         [0, 1, 1, 1, 1],
@@ -90,15 +125,88 @@ def test_single_iteration():
         {"top left": (3,0), "reflect": False, "rotations": 0}
     ]
 
-    segmentation = segment_map(fragment, copies)
+    segmentation = segment_map(fragment3, copies3)
 
     subtrees = dict()
     copies_unexplored = set()
-    tree = Tree(map, fragment, segmentation, copies_unexplored, subtrees)
+    tree = Tree(map3, fragment3, segmentation, copies_unexplored, subtrees)
     
-    print('nearest fragment path from ' + str((5,6)))
+    print('nearest fragment path from ' + str((3,0)))
     result = step_heuristic(tree, segmentation, 0)
 
     print(result)
 
-test_single_iteration()
+
+
+
+
+
+from modular_planner import modular_planning
+
+map = np.array([
+    [0, 0, 0, 0, 0, 2, 0, 0, 0],
+    [0, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 0, 0, 0, 2, 0, 2, 0],
+    [3, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 0, 0, 2, 0, 0, 2, 0],
+    [0, 2, 0, 0, 2, 0, 2, 2, 2],
+    [0, 2, 0, 0, 2, 0, 0, 2, 0],
+    [0, 2, 0, 2, 2, 2, 0, 2, 0],
+    [0, 0, 0, 0, 2, 0, 0, 0, 0],
+])
+
+fragment = np.array([
+    [0, 2, 0],
+    [2, 2, 2],
+    [0, 2, 0],
+])
+
+map2 = np.array([
+    [0, 0, 0, 2, 0, 0, 0],
+    [2, 2, 0, 2, 2, 2, 0],
+    [0, 2, 0, 2, 0, 2, 0],
+    [2, 2, 2, 2, 2, 2, 2],
+    [0, 0, 2, 0, 0, 0, 0],
+    [0, 0, 2, 0, 2, 2, 0],
+    [3, 2, 2, 0, 0, 2, 0],
+])
+
+fragment2 = np.array([
+    [0, 0, 0],
+    [2, 2, 0],
+    [0, 2, 0],
+])
+
+copies2 = [
+    {"top left": (0,0), "reflect": False, "rotations": 0},
+    {"top left": (0,4), "reflect": False, "rotations": 0},
+    {"top left": (4,4), "reflect": False, "rotations": 0}
+
+]
+copies = [
+    {"top left": (0,4), "reflect": False, "rotations": 0},
+    {"top left": (6,3), "reflect": False, "rotations": 0},
+    {"top left": (4,6), "reflect": False, "rotations": 0}
+]
+
+map3 = np.array([
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 2, 2, 2, 2, 2, 0],
+        [0, 0, 0, 0, 0, 2, 0],
+        [0, 0, 0, 0, 0, 2, 0],
+        [0, 2, 2, 2, 2, 2, 0],
+        [0, 0, 0, 0, 0, 2, 3]
+    ])
+
+fragment3 = np.array([
+        [0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0]
+    ])
+
+copies3 = [
+        {"top left": (0,0), "reflect": False, "rotations": 0},
+        {"top left": (3,0), "reflect": False, "rotations": 0}
+    ]
+
+modular_planning(map2, fragment2, copies2)
