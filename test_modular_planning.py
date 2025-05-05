@@ -94,7 +94,8 @@ def test_single_iteration():
 
     subtrees = dict()
     copies_unexplored = set()
-    tree = Tree(map, fragment, segmentation, copies_unexplored, subtrees)
+    tree = Tree(map, segmentation, copies_unexplored)
+    #tree = Tree(map, fragment, segmentation, copies_unexplored, subtrees)
     
     print('nearest fragment path from ' + str((5,6)))
     result = step_heuristic(tree, segmentation, 0)
