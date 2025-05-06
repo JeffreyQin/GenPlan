@@ -145,6 +145,7 @@ def modular_planning(map, fragment, copies):
     while len(copies_explored) != len(copies):
         closest_fragment_tree = Tree(map, segmentation, copies_explored)
         
+        print("finished tree")
         if closest_fragment_tree.fragment_found == 0:
             break
         

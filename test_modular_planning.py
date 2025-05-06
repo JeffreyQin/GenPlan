@@ -209,4 +209,30 @@ copies3 = [
         {"top left": (3,0), "reflect": False, "rotations": 0}
     ]
 
-modular_planning(map3, fragment3, copies3)
+map4 = np.array([
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    [2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2],
+    [2, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 2],
+    [2, 0, 0, 2, 0, 2, 2, 0, 2, 0, 0, 2],
+    [2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    [2, 0, 0, 2, 0, 2, 2, 0, 2, 0, 0, 2],
+    [2, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 2],
+    [2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2],
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+])
+
+fragment4 = np.array([
+    [2, 2, 2, 2, 2],
+    [2, 0, 0, 0, 0],
+    [2, 0, 2, 2, 0],
+    [2, 0, 0, 2, 0]
+])
+
+copies4 = [
+    {"top left": (0,0), "reflect": False, "rotations": 0},
+    {"top left": (0,7), "reflect": True, "rotations": 2},
+    {"top left": (6,0), "reflect": True, "rotations": 0},
+    {"top left": (6,7), "reflect": False, "rotations": 2}
+]
+modular_planning(map4, fragment4, copies4)

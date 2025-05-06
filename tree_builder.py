@@ -63,7 +63,7 @@ class Tree():
 
         (self.height, self.width) = map.shape
         self.fragment_found = 0
-        
+
         # determine start position
         num_unobserved = 0
         for r in range(self.height):
@@ -89,15 +89,14 @@ class Tree():
                 'path_observation': set(),
                 'parent_id': None, # parent node id
                 'depth': 0,
-                'map': updated_map,
+                'map': map,
                 'children': set()
             }
         }
 
         # bfs queue
         agenda = deque()
-        agenda.append((0, map)) # (node id, current map)
-
+        agenda.append((0, updated_map)) # (node id, current map)
 
         while agenda:
 
@@ -135,12 +134,11 @@ class Tree():
                 }
 
                 new_node_id = max(self.nodes) + 1
-                updated_map = self.update_map(updated_map, path[0], path[-1])
-                agenda.append((new_node_id, updated_map))
-                
+                branch_map = self.update_map(updated_map, path[0], path[-1])
+                agenda.append((new_node_id, branch_map))
+
                 self.nodes[node_id]['children'].add(new_node_id)
                 self.nodes[new_node_id] = branch
-
 
 
     def next_path(self, map: list[list[int, int]], pos: tuple[int, int], segmentation, copies_explored):
