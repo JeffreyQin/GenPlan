@@ -52,7 +52,7 @@ class Node():
 
 class Tree():
 
-    def __init__(self, map, segmentation, copies_explored):
+    def __init__(self, map, segmentation, copies_explored, copies):
         """
         map: current state of the map
         segmentation: mapping of each coordinate (r, c) to its corresponding fragment copy
@@ -62,7 +62,7 @@ class Tree():
         """
 
         (self.height, self.width) = map.shape
-        self.fragment_found = 0
+        self.copies_found = set()
 
         # determine start position
         num_unobserved = 0
@@ -114,7 +114,8 @@ class Tree():
                         subtrees[(base_r, base_c)] = self.construct_subtree(fragment, agent_pos)
                     """
                     # terminate exploration
-                    self.fragment_found += 1
+                    if copy['top left'] not in self.copies_found:
+                        self.copies_found.add(copy['top left'])
                     continue
                     
             # add each path that leads to new observation, or go to some fragment entrance
@@ -147,11 +148,16 @@ class Tree():
 
         agenda = deque()
         agenda.append([pos])
+        visited_pos = set()
         obs = dict()
 
         while agenda:
             path = agenda.popleft()
             r_, c_ = path[-1]
+
+            if (r_, c_) in visited_pos:
+                continue
+            visited_pos.add((r_, c_))
 
             for dir in ((0, 1), (0, -1), (1, 0), (-1, 0)):
                 # clip within bounds
@@ -166,7 +172,7 @@ class Tree():
 
                 # if (r,c) is an entrance of unexplored copy, we have a path
                 is_entrance = False
-                if (r, c) in segmentation:
+                if (r, c) in segmentation.keys():
                     copy, base_r, base_c = segmentation[(r, c)]
                     if copy['top left'] not in copies_explored:
                         is_entrance = True
