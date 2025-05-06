@@ -1,10 +1,10 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 import numpy as np
 
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
-
+from value_iteration import ValueIteration
 
 def segment_map(fragment, copies):
         """
@@ -63,6 +63,95 @@ def fragment_to_map_coords(fragment, copy):
       for j in range(indices.shape[2]):
          frag_to_map[(int(indices[0,i,j]), int(indices[1,i,j]))] = (i+tl_i, j+tl_j)
    return frag_to_map
+
+
+def get_observation(self, map: list[list[int, int]], pos: tuple[int, int]):
+
+    observations = set()
+    (r, c) = pos
+    
+    # 1st quadrant
+    c_left = 0
+    
+    for r_ in range(r, -1, -1):
+        columns = []
+        for c_ in range(c, c_left-1, -1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+        
+        if not columns:
+            break
+
+        c_left = columns[-1]
+
+    # 2nd quadrant
+    c_right = map.shape[1] - 1
+
+    for r_ in range(r, -1, -1):
+        columns = []
+        for c_ in range(c, c_right+1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+
+        if not columns:
+            break
+
+        c_right = columns[-1]
+
+    # 3rd quadrant
+    c_left = 0
+    
+    for r_ in range(r, map.shape[0]):
+        columns = []
+
+        for c_ in range(c, c_left-1, -1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+        
+        if not columns:
+            break
+
+        c_left = columns[-1]
+
+    # 4th quadrant
+    c_right = map.shape[1] - 1
+    
+    for r_ in range(r, map.shape[0]):
+        columns = []
+        for c_ in range(c, c_right+1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+
+        if not columns:
+            break
+
+        c_right = columns[-1]
+        
+    return observations
 
 
 def step_heuristic(tree, segmentation, copies_explored, node_id):
@@ -130,32 +219,88 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
     return path
 
 
+def bfs(map, segmentation, copies_explored):
+
+    (height, width) = map.shape
+    
+    copies_found = set()
+
+    for r in range(height):
+        for c in range(width):
+            if map[r, c] == Cell.AGENT.value:
+                agent_pos = (r, c)
+    
+    pos_q = deque()
+    path_q = deque()
+
+    pos_q.append(agent_pos)
+    path_q.append([agent_pos])
+
+    visited = set()
+
+    while pos_q:
+        (_r, _c) = pos_q.popleft()
+        path = path_q.popleft()
+
+        if (_r, _c) in visited:
+            continue
+        visited.add((_r, _c))
+
+        if (_r, _c) in segmentation.keys():
+            copy, base_r, base_c = segmentation[(_r, _c)]
+            if copy['top left'] not in copies_explored:
+                return path, agent_pos
+
+        if _r - 1 >= 0 and map[_r - 1, _c] != Cell.WALL.value:
+            pos_q.append((_r - 1, _c))
+            path_q.append(path + [(_r - 1, _c)])
+        if _r + 1 <= height - 1 and map[_r + 1, _c] != Cell.WALL.value:
+            pos_q.append((_r + 1, _c))
+            path_q.append((path + [(_r + 1, _c)]))
+        if _c - 1 >= 0 and map[_r, _c - 1] != Cell.WALL.value:
+            pos_q.append((_r, _c - 1))
+            path_q.append((path + [(_r, _c - 1)]))
+        if _c + 1 <= width - 1 and map[_r, _c + 1] != Cell.WALL.value:
+            pos_q.append((_r, _c + 1))
+            path_q.append((path + [(_r, _c + 1)]))
+
+    return None, agent_pos
+
+
 def modular_planning(map, fragment, copies):
     """
     end-to-end planning pipeline of global map
     goal is to explore all fragment in the global map in the order of step heuristic
     """
-
-    (height, width) = map.shape
     segmentation = segment_map(fragment, copies)
 
     subtrees = dict()
     copies_explored = set()
 
     while len(copies_explored) != len(copies):
-        closest_fragment_tree = Tree(map, segmentation, copies_explored)
+        """
+        closest_fragment_tree = Tree(map, segmentation, copies_explored, copies)
         
         print("finished tree")
-        if closest_fragment_tree.fragment_found == 0:
+        if len(closest_fragment_tree.copies_found) == 0:
             break
         
         init_pos = closest_fragment_tree.init_pos
 
         steps, path = step_heuristic(closest_fragment_tree, segmentation, copies_explored, node_id=0)
+        
+        print("path to closest fragment")
+        print(path)
+        """
+        path, init_pos = bfs(map, segmentation, copies_explored)
+        print(copies_explored)
+        if path is None:
+            break
 
         print("path to closest fragment")
         print(path)
 
+        
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
 
@@ -175,4 +320,4 @@ def modular_planning(map, fragment, copies):
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
 
     print('all fragments explored')
-        
+

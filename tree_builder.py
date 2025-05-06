@@ -157,7 +157,6 @@ class Tree():
 
             if (r_, c_) in visited_pos:
                 continue
-            visited_pos.add((r_, c_))
 
             for dir in ((0, 1), (0, -1), (1, 0), (-1, 0)):
                 # clip within bounds
@@ -172,7 +171,7 @@ class Tree():
 
                 # if (r,c) is an entrance of unexplored copy, we have a path
                 is_entrance = False
-                if (r, c) in segmentation.keys():
+                if (r, c) in segmentation:
                     copy, base_r, base_c = segmentation[(r, c)]
                     if copy['top left'] not in copies_explored:
                         is_entrance = True
