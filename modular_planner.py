@@ -96,10 +96,16 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
     return the path of exploration within the fragment by pomcp
     """
     generator = Generator(fragment)
+    print("HERE IS THE FRAGMENT")
+    print(fragment)
     
     ## initializing root node of subtree if not already exist
     if agent_pos not in subtrees.keys():
+        print(agent_pos)
         init_obs, init_belief = generator.get_init_state(agent_pos)
+        print("DEBUG STATEMENT 1 vvvv ")
+        print( init_obs)
+        print( init_belief)
         subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
     root_node = subtrees[agent_pos]
 

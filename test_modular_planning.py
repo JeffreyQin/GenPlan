@@ -209,4 +209,4 @@ copies3 = [
         {"top left": (3,0), "reflect": False, "rotations": 0}
     ]
 
-modular_planning(map2, fragment2, copies2)
+modular_planning(map3, fragment3, copies3)

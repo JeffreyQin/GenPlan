@@ -155,6 +155,10 @@ class POMCP():
         depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
 
         count = 0
+
+        if(len(root.belief) == 0): #meaing we've seen all empty rooms
+            print("all rooms observerd")
+            return
         while count < depth*1100: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
