@@ -277,6 +277,7 @@ def modular_planning(map, fragment, copies):
     subtrees = dict()
     copies_explored = set()
 
+    agent_positions:list = [] #this is a list that contains the path so that we can visualize
     while len(copies_explored) != len(copies):
         """
         closest_fragment_tree = Tree(map, segmentation, copies_explored, copies)
@@ -293,12 +294,14 @@ def modular_planning(map, fragment, copies):
         print(path)
         """
         path, init_pos = bfs(map, segmentation, copies_explored)
-        print(copies_explored)
+        #print(copies_explored)
         if path is None:
             break
 
         print("path to closest fragment")
         print(path)
+
+        agent_positions.extend(path)
 
         
         entrance = path[-1]
@@ -312,7 +315,7 @@ def modular_planning(map, fragment, copies):
 
         print("path inside this fragment")
         print(fragment_path)
-
+        agent_positions.extend(fragment_path)
         copies_explored.add(copy['top left'])
 
         ## relocate agent position in the global map after fragment exploration
@@ -320,4 +323,5 @@ def modular_planning(map, fragment, copies):
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
 
     print('all fragments explored')
+    return agent_positions
 
