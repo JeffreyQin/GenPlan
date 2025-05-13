@@ -15,7 +15,7 @@ class MapCompletionAgent:
         
         load_dotenv()
 
-        self.model = "gpt-3.5-turbo"
+        self.model = "gpt-4"
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         self.system_prompt = ""
@@ -125,7 +125,7 @@ class MapCompletionAgent:
             print("No valid fragments returned")
             return {}
             
-        plot_input_response(self.input_map, fragments, save_image=log_file_name, show_plots=show_plots)
+        #plot_input_response(self.input_map, fragments, save_image=log_file_name, show_plots=show_plots)
 
         try:
             for f in fragments:
@@ -135,14 +135,18 @@ class MapCompletionAgent:
                 sim = round(similarity_score(self.input_map, output), 2)
                 errors_and_omissions = compute_errors_and_omissions(self.input_map, output)
                 mdl_score = structural_mdl_score(f, partition, errors_and_omissions[0], errors_and_omissions[1])
+                
+                # plot_input_response(output, fragments, save_image=log_file_name, show_plots=show_plots)
 
                 if (console_logs): 
                     print("fragment:\n ", f, "\n partition: \n", partition, "\n output: \n", output, "\n similarity: ", sim)
 
                 map_completions[get_fragment_id(f)] = {
                     "fragment": f, 
-                    "log_file": log_file_name, 
+                    "log_file": log_file_name,
+                    "original_map": self.input_map, 
                     "reconstructed_map": output, 
+                    "fragment": fragments,
                     "mdl": mdl_score,
                     "similarity": sim
                 }
@@ -185,6 +189,8 @@ class MapCompletionAgent:
 
             code = extract_python(resp)
 
+            print(code)
+
             """
             if (not debug_mode):
                 log_file_name = log_completion(self.input_map, code)  # log what we think is Python code part
@@ -213,6 +219,11 @@ class MapCompletionAgent:
             sorted_maps = sorted(maps.items(), key=lambda item: item[1]['similarity'], reverse=True)
             best_similarity = sorted_maps[0]
 
+            print("ARR")
+            print(best_similarity)
+
+            plot_input_response(best_similarity[1]['original_map'], best_similarity[1]['fragment'], "Best Similarity: original map", save_image=log_file_name, show_plots=show_plots)
+            plot_input_response(best_similarity[1]['reconstructed_map'], best_similarity[1]['fragment'], "Best Similarity: reconstructed map", save_image=log_file_name, show_plots=show_plots)
             """
             if (not debug_mode):
                 if (best_mdl[0] != best_similarity[0]):

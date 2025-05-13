@@ -19,20 +19,24 @@ The repeating fragment is : [
 ]
 
 Example 2. Given input: [
+  [1,1,1,1,1,1],
   [0,0,1,0,0,1],
   [0,0,1,0,0,1],
   [1,0,1,1,0,1],
   [0,0,0,0,0,0],
+  [1,1,1,1,1,1],
   [1,0,1,1,0,1],
   [0,0,1,0,0,1],
   [0,0,1,0,0,1]] 
 The repeating fragment is: [
+   [1,1,1],
    [0,0,1], 
    [0,0,1], 
    [1,0,1]]
 
  To be considered a repeating fragment, the fragment does not have to tile the space exactly, but it should be repeated at least twice.
- The fragment instances may be flipped horizontally or vertically, translated horizontally or vertically, rotated 90 degrees, and may partly overlap.
+ The fragment instances may be flipped horizontally or vertically, translated horizontally or vertically, rotated 90 degrees, and may partly overlap. 
+ Note that the height and width of the fragment does NOT need to be equal.
 
 In Step 2, you will write a function that attempts to identify all occurrences of the fragment in the input. 
 Return a list containing the indexical locations of the top left corner for each copy, along with whether to reflect the copy horizontally and

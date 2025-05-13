@@ -42,10 +42,10 @@ def plot_patterns(patterns, titles, figure_title = "", save_image="", show_plots
 
 
 # plotting input, and an array of proposed fragments
-def plot_input_response(input_image, fragments, save_image="", show_plots=True):
+def plot_input_response(input_image, fragments, title, save_image="", show_plots=True):
     plot_patterns([input_image] + fragments, 
                   ["Input Pattern"] + [f"Fragment {i}" for i in range(len(fragments))], 
-                  "Input and Returned Fragment", 
+                  title, 
                   save_image, 
                   show_plots)
     
