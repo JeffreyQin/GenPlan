@@ -129,9 +129,14 @@ class MapCompletionAgent:
 
         try:
             for f in fragments:
-                
+
                 partition = find_map_partition(self.input_map, f)
                 output = generate_from_partition(f, partition, self.input_map.shape)
+                if output is False:
+                    print("FAILURE")
+                    continue
+                else:
+                    print("SUCCESS")
                 sim = round(similarity_score(self.input_map, output), 2)
                 errors_and_omissions = compute_errors_and_omissions(self.input_map, output)
                 mdl_score = structural_mdl_score(f, partition, errors_and_omissions[0], errors_and_omissions[1])
@@ -218,9 +223,6 @@ class MapCompletionAgent:
             best_mdl = sorted(maps.items(), key=lambda item: item[1]['mdl'], reverse=True)[0]
             sorted_maps = sorted(maps.items(), key=lambda item: item[1]['similarity'], reverse=True)
             best_similarity = sorted_maps[0]
-
-            print("ARR")
-            print(best_similarity)
 
             plot_input_response(best_similarity[1]['original_map'], best_similarity[1]['fragment'], "Best Similarity: original map", save_image=log_file_name, show_plots=show_plots)
             plot_input_response(best_similarity[1]['reconstructed_map'], best_similarity[1]['fragment'], "Best Similarity: reconstructed map", save_image=log_file_name, show_plots=show_plots)
