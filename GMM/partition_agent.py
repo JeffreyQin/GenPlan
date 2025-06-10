@@ -11,7 +11,7 @@ class PartitionAgent(MapCompletionAgent):
 
 agent = PartitionAgent()
 try:
-    agent.send_prompt(0, n_completions=5, show_plots=True)
+    agent.send_prompt(3, n_completions=3, show_plots=True)
 except Exception as e:
     print(f"error sending prompt")
 

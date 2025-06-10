@@ -8,31 +8,63 @@ user_prompt = [
 In Step 1, you will be given a pattern and asked to identify its constituent fragments. 
 The pattern is given by an input matrix, elements of which can take values 1 and 0. 
 Your task is to identify a repeating fragment in this input.
+
+ To be considered a repeating fragment, the fragment does not have to tile the space exactly, but it should be repeated at least twice.
+ The fragment instances may be flipped horizontally or vertically, translated horizontally or vertically, rotated 90 degrees
+
+ IMPORTANT:
+ 1. instances of the fragment should NOT overlap in the original maze
+ 2. the height and width of the fragment need NOT be the same
+
 Example 1. Given input: [
   [1, 0, 1, 0], 
   [0, 1, 0, 1], 
+  [0, 0, 0, 0],
   [1, 0, 1, 0], 
   [0, 1, 0, 1] ], 
 The repeating fragment is : [
    [1, 0], 
-   [0, 1]
-]
+   [0, 1]]
 
 Example 2. Given input: [
+  [1,1,1,1,1,1],
   [0,0,1,0,0,1],
   [0,0,1,0,0,1],
   [1,0,1,1,0,1],
   [0,0,0,0,0,0],
+  [1,1,1,1,1,1],
   [1,0,1,1,0,1],
   [0,0,1,0,0,1],
   [0,0,1,0,0,1]] 
 The repeating fragment is: [
+   [1,1,1],
    [0,0,1], 
    [0,0,1], 
    [1,0,1]]
 
- To be considered a repeating fragment, the fragment does not have to tile the space exactly, but it should be repeated at least twice.
- The fragment instances may be flipped horizontally or vertically, translated horizontally or vertically, rotated 90 degrees, and may partly overlap.
+Example 3. Given input: [
+   [1,1,1,1,1,1],
+   [1,0,1,0,1,0],
+   [1,0,1,0,1,0],
+   [0,0,0,0,0,0],
+   [0,1,0,1,0,1],
+   [0,1,0,1,0,1],
+   [1,1,1,1,1,1]]
+the repeating fragment is: [
+   [1,1],
+   [1,0],
+   [1,0]]
+however, the repeating fragment cannot be: [
+   [1,1],
+   [1,0],
+   [1,0],
+   [0,0]] 
+or [
+   [1,1,1],
+   [1,0,1],
+   [1,0,1]]
+because it would lead to the fragments overlapping in the original maze
+
 
 In Step 2, you will write a function that attempts to identify all occurrences of the fragment in the input. 
 Return a list containing the indexical locations of the top left corner for each copy, along with whether to reflect the copy horizontally and
@@ -46,15 +78,15 @@ def partition():
    return [
       {"top left": (0,0), "reflect": False, "rotations": 0},
       {"top left": (0,2), "reflect": False, "rotations": 0},
-      {"top left": (2,0), "reflect": False, "rotations": 0},
-      {"top left": (2,2), "reflect": False, "rotations": 0},
+      {"top left": (3,0), "reflect": False, "rotations": 0},
+      {"top left": (3,2), "reflect": False, "rotations": 0},
    ]
 
 An alternative, more structured solution is
 
 def partition():
    copies = []
-   for tl_i, tl_j in [(0,0),(0,2),(2,0),(2,2)]:
+   for tl_i, tl_j in [(0,0),(0,2),(3,0),(3,2)]:
       copies.append(
          {"top left": (tl_i, tl_j), "reflect": False, "rotations": 0},
       )
@@ -66,8 +98,8 @@ def partition():
    return [
       {"top left": (0,0), "reflect": False, "rotations": 0},
       {"top left": (0,3), "reflect": False, "rotations": 0},
-      {"top left": (4,0), "reflect": True, "rotations": 2},
-      {"top left": (4,3), "reflect": True, "rotations": 2},
+      {"top left": (5,0), "reflect": True, "rotations": 2},
+      {"top left": (5,3), "reflect": True, "rotations": 2},
    ]
 
 An alternative, more structured solution is
@@ -78,7 +110,7 @@ def partition():
       copies.append(
          {"top left": (tl_i, tl_j), "reflect": False, "rotation": 0},
       )
-   for tl_i, tl_j in [(4,0),(4,3)]:
+   for tl_i, tl_j in [(5,0),(5,3)]:
       copies.append(
          {"top left": (tl_i, tl_j), "reflect": True, "rotations": 2},
       )

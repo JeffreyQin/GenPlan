@@ -126,12 +126,22 @@ def generate_from_partition(fragment, partition, input_dims):
         fragment = np.array(fragment)
     
     generated_map = np.full(input_dims, Cell.UNDEFINED.value)
+    
     for p in partition:
         transformed = transform_fragment(fragment, p["reflection"], p["rotation"])
         height, width = transformed.shape
         tl_row, tl_col = p["top_left"]
-        try:
-            generated_map[tl_row:tl_row + height, tl_col:tl_col + width] = transformed
-        except:
-            pass
+
+        # Check if placement is within bounds
+        if tl_row + height > input_dims[0] or tl_col + width > input_dims[1]:
+            return False
+
+        # Check for overlap
+        current_slice = generated_map[tl_row:tl_row + height, tl_col:tl_col + width]
+        overlap = (current_slice != Cell.UNDEFINED.value) & (transformed != Cell.UNDEFINED.value)
+        if np.any(overlap):
+            return False
+
+        generated_map[tl_row:tl_row + height, tl_col:tl_col + width] = transformed
+
     return generated_map
