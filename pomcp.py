@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 50): #set depth to high
+    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 60): #set depth to high
         """
         generator - black box generator
 
@@ -159,7 +159,7 @@ class POMCP():
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             print("all rooms observerd")
             return
-        while count < depth*1000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < depth*2000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             #print("complete simulation" + str(count))
