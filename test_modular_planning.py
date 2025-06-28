@@ -69,6 +69,13 @@ def construct_copy(fragment, reflect, rotations):
     fragment = np.rot90(fragment, rotations)
     return fragment
 
+def find_agent_pos(map: np.array):
+    for i in range(map.shape[0]):
+        for j in range (map.shape[1]):
+            if map[i, j] == 3:
+                return (i, j)
+    
+    return None
 
 def test_single_iteration():
     map = np.array([
@@ -142,7 +149,7 @@ def test_single_iteration():
 
 
 
-from modular_planner import modular_planning
+from modular_planner import modular_planning, fragment_planning
 
 map = np.array([
     [0, 0, 0, 0, 0, 2, 0, 0, 0],
@@ -591,7 +598,9 @@ copies12 = [
 import pygame
 import sys
 
-agent_path = modular_planning(map10, fragment10, copies10)
+#agent_path = modular_planning(map12, fragment12, copies12)
+agent_path2 = fragment_planning(dict(), map12, find_agent_pos(map12))
+
 # Constants
 TILE_SIZE = 30
 FPS = 40
@@ -701,4 +710,4 @@ def visualize(map_array, agent_path):
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    visualize(map10, agent_path)
+    visualize(map12, agent_path2)
