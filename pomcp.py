@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 60): #set depth to high
+    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 60): #set depth to high
         """
         generator - black box generator
 
@@ -18,7 +18,7 @@ class POMCP():
         
         self.generator: Generator = generator
 
-        self.discount: float = discount
+        self.discount: float = 1.0
         self.c: float = exploration
         self.epsilon: float = epsilon
         self.depth_limit: int = depth
@@ -58,7 +58,7 @@ class POMCP():
             return 0 #remember to change to 0
         else:
             temp_node = Node(new_pos, new_obs, new_belief, node.id, random_action)
-            return reward + self.rollout(temp_node, state, depth + 1)
+            return reward + self.discount * self.rollout(temp_node, state, depth + 1)
     
 
     def simulate(self, state: tuple[int, int], node: Node, depth: int) -> float:
@@ -92,7 +92,7 @@ class POMCP():
 
             action_values: list[float] = list()
             for a in range(4):
-                action_values.append(self.UCB1(node, a))
+                action_values.append(self.UCB1(node, a, self.depth_limit - depth))
 
             chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
 
@@ -115,18 +115,18 @@ class POMCP():
                 reward = 0
                 node.children[chosen_a].num_visited += 1
             else:
-                reward = reward + self.simulate(state, node.children[chosen_a], depth + 1)
+                reward = reward + self.discount * self.simulate(state, node.children[chosen_a], depth + 1)
 
             node.action_values[chosen_a] = node.action_values[chosen_a] + (reward - node.action_values[chosen_a])/node.children[chosen_a].num_visited
 
             return reward
         
             
-    def UCB1(self, node: Node, action: int):
+    def UCB1(self, node: Node, action: int, depth: int):
         if node.children[action].num_visited == 0: # unvisited action
             return float('inf')
         else:
-            return node.action_values[action] + self.c * math.sqrt(
+            return node.action_values[action] / float(depth) + self.c * math.sqrt(
                     math.log(node.num_visited) / node.children[action].num_visited)
         
 
@@ -152,17 +152,16 @@ class POMCP():
         """
         Search will take a node and return an integer corresponding to the best action
         """
-        depth:int = self.depth_limit #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS
-
-        count = 0
 
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             print("all rooms observerd")
             return
-        while count < depth*2000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        
+        count = 0
+        while count < 10000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
-            #print("complete simulation" + str(count))
             count += 1
 
         best_action:int = self.best_action_index(root)
