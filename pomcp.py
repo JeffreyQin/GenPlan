@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 60): #set depth to high
+    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 50): #set depth to high
         """
         generator - black box generator
 

@@ -609,8 +609,8 @@ copies12 = [
 import pygame
 import sys
 
-#agent_path = modular_planning(map12, fragment12, copies12)
-agent_path2 = fragment_planning(dict(), map12, find_agent_pos(map12))
+agent_path = modular_planning(map10, fragment10, copies10)
+#agent_path2 = fragment_planning(dict(), map12, find_agent_pos(map12))
 
 # Constants
 TILE_SIZE = 30
@@ -723,4 +723,4 @@ from modular_planner import *
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    visualize(map12, agent_path2)
+    visualize(map10, agent_path)
