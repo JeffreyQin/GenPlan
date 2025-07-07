@@ -1,7 +1,6 @@
 
 import numpy as np
 from tree_builder import Tree
-from generator import Generator
 import math
 
 def step_heuristic(tree, segmentation, node_id):
@@ -70,6 +69,13 @@ def construct_copy(fragment, reflect, rotations):
     fragment = np.rot90(fragment, rotations)
     return fragment
 
+def find_agent_pos(map: np.array):
+    for i in range(map.shape[0]):
+        for j in range (map.shape[1]):
+            if map[i, j] == 3:
+                return (i, j)
+    
+    return None
 
 def test_single_iteration():
     map = np.array([
@@ -90,6 +96,7 @@ def test_single_iteration():
         [0, 0, 2, 0, 2, 2, 0],
         [3, 2, 2, 0, 0, 2, 0],
     ])
+
 
    
     map3 = np.array([
@@ -143,7 +150,7 @@ def test_single_iteration():
 
 
 
-from modular_planner import modular_planning
+from modular_planner import modular_planning, fragment_planning
 
 map = np.array([
     [0, 0, 0, 0, 0, 2, 0, 0, 0],
@@ -172,6 +179,16 @@ map2 = np.array([
     [0, 0, 2, 0, 2, 2, 0],
     [3, 2, 2, 0, 0, 2, 0],
 ])
+
+map22 = np.array([
+        [0, 0, 0, 2, 2, 2, 2],
+        [2, 2, 0, 2, 0, 0, 0],
+        [0, 2, 2, 2, 2, 0, 0],
+        [0, 0, 2, 3, 2, 2, 2],
+        [0, 0, 2, 2, 2, 0, 0],
+        [0, 0, 2, 0, 0, 0, 0],
+        [2, 2, 2, 0, 0, 0, 0],
+    ])
 
 fragment2 = np.array([
     [0, 0, 0],
@@ -452,19 +469,19 @@ map11 = np.array(
  [0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 2, 0, 2, 0, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 0, 2, 0, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2, 0, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
- [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
@@ -592,18 +609,19 @@ copies12 = [
 import pygame
 import sys
 
+agent_path = modular_planning(map10, fragment10, copies10)
+#agent_path2 = fragment_planning(dict(), map12, find_agent_pos(map12))
+
 # Constants
 TILE_SIZE = 30
 FPS = 40
 
 # Colors
 COLOR_BG = (30, 30, 30)
-COLOR_FLOOR = (150, 150, 150)
-COLOR_OBSERVED = (210, 210, 210)
+COLOR_FLOOR = (200, 200, 200)
 COLOR_WALL = (50, 50, 50)
 COLOR_AGENT = (255, 0, 0)
 COLOR_GOAL = (0, 255, 0)
-
 COLOR_TRAIL = (100, 100, 255)
 
 # Arrow drawing helper – only draws the head when width=0
@@ -699,128 +717,10 @@ def visualize(map_array, agent_path):
                 pygame.quit()
                 sys.exit()
 
-def visualize_after_checkpoint(map_array, pos_indices, agent_path):
-    pygame.init()
-    rows, cols = map_array.shape
-    num_empty_spaces = 0
-    for x in range(rows):
-        for y in range(cols):
-            if map_array[x][y] == 3 or map_array[x][y] == 2:
-                num_empty_spaces += 1
-                
-    screen = pygame.display.set_mode((cols * TILE_SIZE, rows * TILE_SIZE))
-    pygame.display.set_caption("POMCP Moves Visualization")
-    clock = pygame.time.Clock()
 
-    generator = Generator(map_array)
-    generator.get_init_state(agent_path[0])
-    pygame.display.set_caption("Agent Full Path")
+from modular_planner import *
 
-    # Font for annotations
-    font = pygame.font.SysFont(None, 16)
-
-    running = True
-    checkpoint = 0
-    past_pos = agent_path[0]
-    path_index = 0
-    action = 0
-    past_path = [past_pos]
-    observed = set()
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-            # Press SPACE to get the next move from POMCP
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    path_index += 1
-
-                    if(past_pos[0] > agent_path[path_index][0]):
-                        action = 0
-                    elif(past_pos[0] < agent_path[path_index][0]):
-                        action = 3
-                    elif(past_pos[1] > agent_path[path_index][1]):
-                        action = 2
-                    elif(past_pos[1] < agent_path[path_index][1]):
-                        action = 4
-                    
-                    past_pos = agent_path[path_index]
-                    past_path.append(past_pos)
-                    exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
-                    #observed.update(new_obs)
-                    #print(observed)
-                    #print(generator.observed)
-                            
-
-        # Drawing routine
-        map_surf = pygame.Surface(screen.get_size())
-        for i in range(rows):
-            for j in range(cols):
-                rect = pygame.Rect(j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-                tile = map_array[i][j]
-                if tile == 0:
-                    col = COLOR_WALL
-                elif (i, j) in generator.observed:
-                    col = COLOR_OBSERVED
-                elif tile == 5 or tile == 3:
-                    col = COLOR_GOAL
-                else:
-                    col = COLOR_FLOOR
-                pygame.draw.rect(map_surf, col, rect)
-                pygame.draw.rect(map_surf, (0,0,0), rect, 1)
-
-        # 2) Trail surface: draw entire path at once
-        trail_surf = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
-        px_pts = [
-            (p[1]*TILE_SIZE + TILE_SIZE//2, p[0]*TILE_SIZE + TILE_SIZE//2)
-            for p in past_path
-        ]
-        if len(px_pts) > 1:
-            pygame.draw.lines(trail_surf, (255, 0, 0), False, px_pts, 7)
-            draw_arrow(trail_surf, px_pts[-2], px_pts[-1], (255, 0, 0))
-
-        # 3) Annotations
-        corner_used = {}  # (i,j) → 'top-right' or 'bottom-left'
-
-        for idx, (i, j) in enumerate(past_path):
-            pos = (i, j)
-            text = font.render(str(idx), True, (0, 0, 0))  # black text
-            text_rect = text.get_rect()
-
-            top_right = (j * TILE_SIZE + TILE_SIZE - 2 - text_rect.width, i * TILE_SIZE + 2)
-            bottom_left = (j * TILE_SIZE + 2, i * TILE_SIZE + TILE_SIZE - text_rect.height - 2)
-
-            if corner_used.get(pos) != 'top-right':
-                trail_surf.blit(text, top_right)
-                corner_used[pos] = 'top-right'
-            else:
-                trail_surf.blit(text, bottom_left)
-                corner_used[pos] = 'bottom-left'
-
-        # 4) Final draw
-        screen.blit(map_surf, (0,0))
-        screen.blit(trail_surf, (0,0))
-
-
-        end_i, end_j = past_path[-1]
-        center = (end_j * TILE_SIZE + TILE_SIZE//2, end_i * TILE_SIZE + TILE_SIZE//2)
-        pygame.draw.circle(screen, COLOR_AGENT, center, TILE_SIZE//3)
-
-        start_i, start_j = past_path[0]
-        start_center = (start_j * TILE_SIZE + TILE_SIZE//2, start_i * TILE_SIZE + TILE_SIZE//2)
-        pygame.draw.circle(screen, (0, 255, 255), start_center, TILE_SIZE//3)
-
-        pygame.display.flip()
-
-        clock = pygame.time.Clock()
-        pygame.display.flip()
-        clock.tick(30)
-
-    pygame.quit()
-
-agent_path, checkpoints = modular_planning(map11, fragment11, copies11)
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    visualize_after_checkpoint(map11,checkpoints, agent_path)
+    visualize(map10, agent_path)
