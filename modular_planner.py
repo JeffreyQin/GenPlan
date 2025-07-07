@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 import numpy as np
 
+import globals
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
@@ -276,7 +277,7 @@ def modular_planning(map, fragment, copies):
 
     subtrees = dict()
     copies_explored = set()
-
+    checkpoints = []
     agent_positions:list = [] #this is a list that contains the path so that we can visualize
     while len(copies_explored) != len(copies):
         """
@@ -307,6 +308,8 @@ def modular_planning(map, fragment, copies):
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
 
+        print(f"number of rollouts: {globals.total_rollout}")
+        print(f"we are on step: {len(agent_positions)}")
         fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
 
         ## convert in-fragment path to global map coordinates
@@ -316,6 +319,7 @@ def modular_planning(map, fragment, copies):
         print("path inside this fragment")
         print(fragment_path)
         agent_positions.extend(fragment_path)
+        checkpoints.append(len(agent_positions))
         copies_explored.add(copy['top left'])
 
         ## relocate agent position in the global map after fragment exploration
@@ -323,5 +327,5 @@ def modular_planning(map, fragment, copies):
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
 
     print('all fragments explored')
-    return agent_positions
+    return agent_positions, checkpoints
 

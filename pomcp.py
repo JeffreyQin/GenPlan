@@ -1,5 +1,6 @@
 import random
 import math
+import globals
 from tree_builder import Node
 from generator import Generator 
 # #chat let me lock in rq
@@ -46,6 +47,7 @@ class POMCP():
         """
         rollout function for exploring new actions/states
         """
+        globals.total_rollout += 1
         if depth > self.depth_limit:
             return 0
         

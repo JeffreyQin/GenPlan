@@ -12,11 +12,13 @@ class Generator():
         self.penalty: float = penalty
 
         self.rooms: set[tuple[int, int]] = set()
+        self.observed: set[tuple[int, int]] = set()
 
         for r in range(self.map_dims[0]):
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
+
 
     
     def get_observation(self, pos: tuple[int, int]):
@@ -120,6 +122,7 @@ class Generator():
             if room not in obs:
                 belief.add(room)
 
+        self.observed = self.observed.union(obs)
         return obs, belief
     
 
@@ -152,6 +155,7 @@ class Generator():
         new_belief = curr_belief.copy()
 
         observation = self.get_observation(dest)
+        self.observed = self.observed.union(observation)
         for obs in observation:
             if obs not in new_obs: 
                 new_obs.add(obs)
