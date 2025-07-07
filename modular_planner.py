@@ -351,5 +351,8 @@ def modular_planning(map, fragment, copies):
         map[fragment_path[-1][0], fragment_path[-1][1]] = Cell.AGENT.value
 
     print('all fragments explored')
+
+    print("DDDD")
+    print(agent_positions)
     return agent_positions
 

@@ -165,8 +165,13 @@ class Generator():
         if exit_state in new_obs:
             return True, dest, new_obs, new_belief, 0.0
         else:
+
             penalty = float(len(new_obs)) / float(len(self.rooms)) + self.penalty 
             penalty_2 = float(num_new_obs) / float(len(self.rooms)) + self.penalty
             return False, dest, new_obs, new_belief, penalty_2
             
 
+    def get_penalty(self, curr_obs: set[tuple[int, int]]):
+        
+        penalty = (float(len(curr_obs) / float(len(self.rooms)))) + self.penalty
+        return penalty
