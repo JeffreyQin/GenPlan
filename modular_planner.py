@@ -180,6 +180,34 @@ def step_heuristic(tree, segmentation, copies_explored, node_id):
     return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
 
 
+def fragment_planning_2(fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+
+    generator = Generator(fragment)
+    pomcp_algorithm = POMCP(generator, discount = 0)
+
+    init_obs, init_belief = generator.get_init_state(agent_pos)
+    root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
+
+    path = list()
+    ctr = 0
+    while ctr <= 100:
+        path.append(root_node.agent_pos)
+
+        #print(len(root_node.belief))
+        best_action = pomcp_algorithm.search(root_node)
+
+        if len(root_node.children) == 0:
+            break
+        else:
+            print(best_action)
+            root_node = root_node.children[best_action]
+
+        ctr += 1
+
+    return path
+
+        
+
 def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
     """
     return the path of exploration within the fragment by pomcp
