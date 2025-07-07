@@ -750,7 +750,7 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                     exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
                     #observed.update(new_obs)
                     #print(observed)
-                    print(generator.observed)
+                    #print(generator.observed)
                             
 
         # Drawing routine
