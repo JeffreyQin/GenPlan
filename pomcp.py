@@ -159,6 +159,7 @@ class POMCP():
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             print("all rooms observerd")
             return
+        count = 0
         while count < 3000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
 
             state: tuple[int, int] = random.choice(list(root.belief))

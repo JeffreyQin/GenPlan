@@ -19,7 +19,6 @@ class Generator():
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
 
-
     
     def get_observation(self, pos: tuple[int, int]):
 
@@ -148,25 +147,35 @@ class Generator():
         # print( f"{dest} this where the agent gonna be")
 
         if dest not in self.rooms:
-            return False, agent_pos, curr_obs, curr_belief, self.penalty*3 #remember to ask jeffery ab this
+            penalty = float(len(curr_obs)) / float(len(self.rooms)) + self.penalty
+            return False, agent_pos, curr_obs, curr_belief, self.penalty
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
         new_belief = curr_belief.copy()
 
         observation = self.get_observation(dest)
-        self.observed = self.observed.union(observation)
+
+        num_new_obs = 0
         for obs in observation:
             if obs not in new_obs: 
+                num_new_obs += 1
                 new_obs.add(obs)
             if obs in new_belief:
                 new_belief.remove(obs)
 
-
+        self.observed = self.observed.union(new_obs)
+        
         if exit_state in new_obs:
-            return True, dest, new_obs, new_belief, 0.0 #remmeber to change to 0
+            return True, dest, new_obs, new_belief, 0.0
         else:
-            # penalize for step
-            return False, dest, new_obs, new_belief, self.penalty
 
+            penalty = float(len(new_obs)) / float(len(self.rooms)) + self.penalty 
+            penalty_2 = float(num_new_obs) / float(len(self.rooms)) + self.penalty
+            return False, dest, new_obs, new_belief, penalty_2
+            
 
+    def get_penalty(self, curr_obs: set[tuple[int, int]]):
+        
+        penalty = (float(len(curr_obs) / float(len(self.rooms)))) + self.penalty
+        return penalty
