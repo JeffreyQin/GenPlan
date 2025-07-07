@@ -7,7 +7,7 @@ from generator import Generator
 
 class POMCP():
 
-    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 60): #set depth to high
+    def __init__(self, generator, discount, exploration = 5, epsilon = 0.001, depth = 500): #set depth to high
         """
         generator - black box generator
 
@@ -47,7 +47,7 @@ class POMCP():
         rollout function for exploring new actions/states
         """
         if depth > self.depth_limit:
-            return 0
+            return self.generator.get_penalty(node.obs)
         
         random_action = random.randint(0,3)
 
@@ -71,7 +71,7 @@ class POMCP():
         # print(f"\n--- Simulating from state {state} at depth {depth} ---")
         # print(f"Node ID: {node.id}, Visited: {node.num_visited}")
         if(depth > self.depth_limit):
-            return 0
+            return self.generator.get_penalty(node.obs)
 
         if not node.id in self.tree:
             #print("Node is new, expanding")
@@ -159,7 +159,7 @@ class POMCP():
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             print("all rooms observerd")
             return
-        while count < depth*2000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < 3000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             #print("complete simulation" + str(count))
