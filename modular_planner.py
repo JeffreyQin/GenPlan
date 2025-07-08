@@ -6,6 +6,11 @@ from generator import Generator
 from pomcp import POMCP
 from value_iteration import ValueIteration
 
+import logging
+
+logging.basicConfig(level=logging.INFO)  
+
+
 def segment_map(fragment, copies):
         """
         Creates a dictionary mapping each index pair to its corresponding copy.
@@ -180,26 +185,36 @@ def step_heuristic(tree, segmentation, copies_explored, node_id):
     return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
 
 
-def fragment_planning_2(fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+def run_fragment_pomcp(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+
+    # for experimentation
+    # set max depth to number of empty rooms in fragment
+
+    num_fragment_rooms = 0
+    height, width = fragment.shape
+    for r in range(height):
+        for c in range(width):
+            if fragment[r, c] != Cell.WALL.value:
+                num_fragment_rooms += 1
 
     generator = Generator(fragment)
-    pomcp_algorithm = POMCP(generator, discount = 0)
+    pomcp_algorithm = POMCP(generator, discount = 0, depth=num_fragment_rooms)
 
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
+    subtrees[agent_pos] = root_node
+
     path = list()
     ctr = 0
-    while ctr <= 100:
+    while ctr <= globals.exploration_steps:
         path.append(root_node.agent_pos)
 
-        #print(len(root_node.belief))
         best_action = pomcp_algorithm.search(root_node)
 
         if len(root_node.children) == 0:
             break
         else:
-            print(best_action)
             root_node = root_node.children[best_action]
 
         ctr += 1
@@ -207,8 +222,29 @@ def fragment_planning_2(fragment: list[list[int, int]], agent_pos: tuple[int, in
     return path
 
         
+def reuse_computed_policy(subtrees, agent_pos: tuple[int, int]):
+    
+    node_ptr = subtrees[agent_pos]
+    path = list()
+    
+    ## recursively compute next cell in the fragment by optimal action
+    ctr = 0
+    while ctr < globals.exploration_steps:
+        path.append(node_ptr.agent_pos)
 
-def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+        if len(node_ptr.children) == 0:
+            break
+        else:
+            a_values: list[int] = [node_ptr.action_values[a] for a in range(4)]
+            a_optimal: int = a_values.index(max(a_values))
+            node_ptr = node_ptr.children[a_optimal]
+
+        ctr += 1
+
+    return path
+
+
+def fragment_planning(subtrees, fragment, agent_pos: tuple[int, int]):
     """
     return the path of exploration within the fragment by pomcp
     """
@@ -227,7 +263,7 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
         subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
     root_node = subtrees[agent_pos]
 
-    pomcp_algorithm = POMCP(generator, discount = 0)
+    pomcp_algorithm = POMCP(generator, discount = 0, num_simulations=globals.num_simulations)
     pomcp_algorithm.search(root_node)
 
     node_ptr = root_node
@@ -250,8 +286,6 @@ def fragment_planning(subtrees, fragment: list[list[int, int]], agent_pos: tuple
 def bfs(map, segmentation, copies_explored):
 
     (height, width) = map.shape
-    
-    copies_found = set()
 
     for r in range(height):
         for c in range(width):
@@ -304,50 +338,55 @@ def modular_planning(map, fragment, copies):
 
     subtrees = dict()
     copies_explored = set()
-    checkpoints = []
-    agent_positions:list = [] #this is a list that contains the path so that we can visualize
-    while len(copies_explored) != len(copies):
-        """
-        closest_fragment_tree = Tree(map, segmentation, copies_explored, copies)
-        
-        print("finished tree")
-        if len(closest_fragment_tree.copies_found) == 0:
-            break
-        
-        init_pos = closest_fragment_tree.init_pos
 
-        steps, path = step_heuristic(closest_fragment_tree, segmentation, copies_explored, node_id=0)
-        
-        print("path to closest fragment")
-        print(path)
-        """
+    step_checkpoints = []
+    rollout_checkpoints = []
+
+    agent_positions:list = [] #this is a list that contains the path so that we can visualize
+
+    # push init position to path
+    (height, width) = map.shape
+    for r in range(height):
+        for c in range(width):
+            if map[r, c] == Cell.AGENT.value:
+                agent_positions.append((r, c))
+
+                
+    while len(copies_explored) != len(copies):
+
         path, init_pos = bfs(map, segmentation, copies_explored)
         #print(copies_explored)
         if path is None:
             break
+        
+        agent_positions.extend(path[1:])
 
-        print("path to closest fragment")
-        print(path)
-
-        agent_positions.extend(path)
-
+        logging.info("path to closest fragment")
+        logging.info(path)
+        logging.info(f"current completed steps: {len(agent_positions)}")
         
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
 
-        fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
-        #fragment_path = fragment_planning_2(fragment, (base_r, base_c))
+        if (base_r, base_c) not in subtrees.keys():
+            fragment_path = run_fragment_pomcp(subtrees, fragment, (base_r, base_c))
+        else:
+            fragment_path = reuse_computed_policy(subtrees, (base_r, base_c))
 
-        print(f"number of rollouts: {globals.total_rollout}")
-        print(f"we are on step: {len(agent_positions)}")
         ## convert in-fragment path to global map coordinates
         fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
                          for (r, c) in fragment_path]
 
-        checkpoints.append(len(agent_positions))
-        print("path inside this fragment")
-        print(fragment_path)
-        agent_positions.extend(fragment_path)
+        agent_positions.extend(fragment_path[1:])
+
+        logging.info("path inside this fragment")
+        logging.info(fragment_path)
+        logging.info(f"current completed steps: {len(agent_positions)}")
+        logging.info(f"number of rollouts: {globals.total_rollout}")
+
+        step_checkpoints.append(len(agent_positions))
+        rollout_checkpoints.append(globals.total_rollout)
+
         copies_explored.add(copy['top left'])
 
         ## relocate agent position in the global map after fragment exploration
@@ -356,6 +395,4 @@ def modular_planning(map, fragment, copies):
 
     print('all fragments explored')
 
-    print("DDDD")
-    print(agent_positions)
-    return agent_positions, checkpoints
+    return agent_positions, step_checkpoints, rollout_checkpoints

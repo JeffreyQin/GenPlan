@@ -1,0 +1,25 @@
+2 0 0 0 0 2 0 2
+2 2 2 2 2 2 2 3
+2 0 0 0 0 0 0 0
+2 0 0 0 0 2 0 2
+2 2 2 2 2 2 2 2
+2 0 0 0 0 0 0 0
+2 0 0 0 0 2 0 2
+2 2 2 2 2 2 2 2
+2 0 0 0 0 0 0 0
+
+
+0 0 0 0 2 0 2
+2 2 2 2 2 2 2
+0 0 0 0 0 0 0
+
+
+total # steps taken after each fragment
+[9, 26, 43]
+
+total # rollouts executed after each fragment
+[6000, 6000, 6000]
+
+% of rooms explored after each fragment
+[0.5, 0.75, 1.0]
+

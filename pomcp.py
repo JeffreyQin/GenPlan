@@ -9,7 +9,7 @@ from generator import Generator
 class POMCP():
 
 
-    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 50): #set depth to high
+    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 8, num_simulations=1000): #set depth to high
         """
         generator - black box generator
 
@@ -24,6 +24,7 @@ class POMCP():
         self.c: float = exploration
         self.epsilon: float = epsilon
         self.depth_limit: int = depth
+        self.num_simulations: int = num_simulations
 
         # used to track which nodes are currently in the tree
         self.tree: set[str] = set()
@@ -160,7 +161,7 @@ class POMCP():
             print("all rooms observerd")
             return
         count = 0
-        while count < 3000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < self.num_simulations: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
 
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
