@@ -1,6 +1,6 @@
 from collections import defaultdict, deque
 import numpy as np
-
+import globals
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
@@ -335,8 +335,8 @@ def modular_planning(map, fragment, copies):
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
 
-        #fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
-        fragment_path = fragment_planning_2(fragment, (base_r, base_c))
+        fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
+        #fragment_path = fragment_planning_2(fragment, (base_r, base_c))
 
         print(f"number of rollouts: {globals.total_rollout}")
         print(f"we are on step: {len(agent_positions)}")
