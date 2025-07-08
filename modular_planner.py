@@ -304,7 +304,7 @@ def modular_planning(map, fragment, copies):
 
     subtrees = dict()
     copies_explored = set()
-
+    checkpoints = []
     agent_positions:list = [] #this is a list that contains the path so that we can visualize
     while len(copies_explored) != len(copies):
         """
@@ -338,10 +338,13 @@ def modular_planning(map, fragment, copies):
         #fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
         fragment_path = fragment_planning_2(fragment, (base_r, base_c))
 
+        print(f"number of rollouts: {globals.total_rollout}")
+        print(f"we are on step: {len(agent_positions)}")
         ## convert in-fragment path to global map coordinates
         fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
                          for (r, c) in fragment_path]
 
+        checkpoints.append(len(agent_positions))
         print("path inside this fragment")
         print(fragment_path)
         agent_positions.extend(fragment_path)
@@ -355,5 +358,4 @@ def modular_planning(map, fragment, copies):
 
     print("DDDD")
     print(agent_positions)
-    return agent_positions
-
+    return agent_positions, checkpoints
