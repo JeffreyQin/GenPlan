@@ -48,7 +48,7 @@ class POMCP():
         """
         rollout function for exploring new actions/states
         """
-        globals.total_rollout += 1
+        #globals.total_rollout += 1
         if depth > self.depth_limit:
             return self.generator.get_penalty(node.obs)
         
@@ -165,6 +165,7 @@ class POMCP():
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             count += 1
+            globals.total_rollout += 1
 
         best_action:int = self.best_action_index(root)
         
