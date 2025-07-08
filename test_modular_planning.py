@@ -726,6 +726,10 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
     action = 0
     past_path = [past_pos]
     observed = set()
+
+    past_check_point = 0
+    checkpoint_index = 0
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -734,20 +738,26 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
             # Press SPACE to get the next move from POMCP
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    path_index += 1
-
-                    if(past_pos[0] > agent_path[path_index][0]):
-                        action = 0
-                    elif(past_pos[0] < agent_path[path_index][0]):
-                        action = 3
-                    elif(past_pos[1] > agent_path[path_index][1]):
-                        action = 2
-                    elif(past_pos[1] < agent_path[path_index][1]):
-                        action = 4
                     
-                    past_pos = agent_path[path_index]
-                    past_path.append(past_pos)
-                    exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
+                    for _ in range(pos_indices[checkpoint_index] - past_check_point):
+
+                        path_index += 1
+
+                        if(past_pos[0] > agent_path[path_index][0]):
+                            action = 0
+                        elif(past_pos[0] < agent_path[path_index][0]):
+                            action = 3
+                        elif(past_pos[1] > agent_path[path_index][1]):
+                            action = 2
+                        elif(past_pos[1] < agent_path[path_index][1]):
+                            action = 4
+                        
+                        past_pos = agent_path[path_index]
+                        past_path.append(past_pos)
+                        exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
+
+                    past_check_point = pos_indices[checkpoint_index]
+                    checkpoint_index += 1
                     #observed.update(new_obs)
                     #print(observed)
                     #print(generator.observed)
@@ -811,6 +821,10 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
         start_center = (start_j * TILE_SIZE + TILE_SIZE//2, start_i * TILE_SIZE + TILE_SIZE//2)
         pygame.draw.circle(screen, (0, 255, 255), start_center, TILE_SIZE//3)
 
+        explored_ratio = len(generator.observed) / num_empty_spaces
+        explored_text = font.render(f"Explored: {explored_ratio:.2%}", True, (0, 0, 0))
+        screen.blit(explored_text, (10, 10))
+
         pygame.display.flip()
 
         clock = pygame.time.Clock()
@@ -819,8 +833,8 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 
     pygame.quit()
 
-agent_path, checkpoints = modular_planning(map10, fragment10, copies10)
+agent_path, checkpoints = modular_planning(map5, fragment5, copies5)
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    visualize(map10,checkpoints, agent_path)
+    visualize_after_checkpoint(map5,checkpoints, agent_path)

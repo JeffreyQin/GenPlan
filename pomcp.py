@@ -47,7 +47,7 @@ class POMCP():
         """
         rollout function for exploring new actions/states
         """
-        globals.total_rollout += 1
+        #globals.total_rollout += 1
         if depth > self.depth_limit:
             return 0
         
@@ -161,11 +161,13 @@ class POMCP():
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             print("all rooms observerd")
             return
-        while count < depth*2000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < 10000: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             #print("complete simulation" + str(count))
             count += 1
+            globals.total_rollout += 1
 
         best_action:int = self.best_action_index(root)
         

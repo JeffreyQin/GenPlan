@@ -308,9 +308,10 @@ def modular_planning(map, fragment, copies):
         entrance = path[-1]
         copy, base_r, base_c = segmentation[entrance]
 
+        fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
+
         print(f"number of rollouts: {globals.total_rollout}")
         print(f"we are on step: {len(agent_positions)}")
-        fragment_path = fragment_planning(subtrees, fragment, (base_r, base_c))
 
         ## convert in-fragment path to global map coordinates
         fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
