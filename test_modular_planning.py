@@ -819,8 +819,8 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 
     pygame.quit()
 
-agent_path, checkpoints = modular_planning(map11, fragment11, copies11)
+agent_path, checkpoints = modular_planning(map10, fragment10, copies10)
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    visualize_after_checkpoint(map11,checkpoints, agent_path)
+    visualize(map10,checkpoints, agent_path)
