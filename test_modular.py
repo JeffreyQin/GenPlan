@@ -762,7 +762,9 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
             # Press SPACE to get the next move from POMCP
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    
+                    if(checkpoint_index >= len(pos_indices)):
+                        running = False
+                        break
                     for _ in range(pos_indices[checkpoint_index] - past_check_point):
 
                         if(past_pos[0] > agent_path[path_index][0]):
@@ -778,6 +780,7 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                         past_path.append(past_pos)
                         exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
                         generator.observed.add(new_agent_pos)
+                        generator.observed = generator.observed.union(generator.get_observation(past_pos))
 
                         path_index += 1
 
@@ -786,10 +789,10 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                     #observed.update(new_obs)
                     #print(observed)
                     #print(generator.observed)
-
+                    generator.observed = generator.observed.union(generator.get_observation(past_pos))
                     explored_ratio = len(generator.observed) / num_empty_spaces
                     explored_checkpoints.append(explored_ratio)
-
+                    
         # Drawing routine
         map_surf = pygame.Surface(screen.get_size())
         for i in range(rows):
@@ -864,15 +867,15 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    agent_path, step_checkpoints, rollout_checkpoints = modular_planning(map11, fragment11, copies11)
-    explored_checkpoints = visualize_after_checkpoint(map11, step_checkpoints, agent_path)
+    agent_path, step_checkpoints, rollout_checkpoints, time_checkpoints = modular_planning(map7, fragment7, copies7)
+    explored_checkpoints = visualize_after_checkpoint(map7, step_checkpoints, agent_path)
 
-    with open('modular_results/map_11_modular.txt', 'a') as f:
+    with open('modular_results/map_7_modular.txt', 'a') as f:
 
-        np.savetxt(f, map11, fmt='%d')
+        np.savetxt(f, map7, fmt='%d')
         f.write('\n\n')
 
-        np.savetxt(f, fragment11, fmt='%d')
+        np.savetxt(f, fragment7, fmt='%d')
         f.write('\n\n')
         
         f.write("total # steps taken after each fragment")
@@ -883,6 +886,12 @@ if __name__ == "__main__":
         f.write("total # rollouts executed after each fragment")
         f.write('\n')
         f.write(str(rollout_checkpoints))
+        f.write('\n\n')
+
+
+        f.write("total time taken to explore each fragment")
+        f.write('\n')
+        f.write(str(time_checkpoints))
         f.write('\n\n')
 
         f.write("% of rooms explored after each fragment")

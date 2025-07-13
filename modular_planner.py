@@ -1,10 +1,12 @@
 from collections import defaultdict, deque
 import numpy as np
 import globals
+import time
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
 from value_iteration import ValueIteration
+
 
 import logging
 
@@ -334,6 +336,7 @@ def modular_planning(map, fragment, copies):
     end-to-end planning pipeline of global map
     goal is to explore all fragment in the global map in the order of step heuristic
     """
+    start_time = time.time()
     segmentation = segment_map(fragment, copies)
 
     subtrees = dict()
@@ -341,6 +344,7 @@ def modular_planning(map, fragment, copies):
 
     step_checkpoints = []
     rollout_checkpoints = []
+    time_checkpoints = []
 
     agent_positions:list = [] #this is a list that contains the path so that we can visualize
 
@@ -373,6 +377,7 @@ def modular_planning(map, fragment, copies):
         else:
             fragment_path = reuse_computed_policy(subtrees, (base_r, base_c))
 
+        fragment_time = time.time()
         ## convert in-fragment path to global map coordinates
         fragment_path = [fragment_to_map_coords(fragment, copy)[r, c]
                          for (r, c) in fragment_path]
@@ -386,7 +391,7 @@ def modular_planning(map, fragment, copies):
 
         step_checkpoints.append(len(agent_positions))
         rollout_checkpoints.append(globals.total_rollout)
-
+        time_checkpoints.append(fragment_time - start_time)
         copies_explored.add(copy['top left'])
 
         ## relocate agent position in the global map after fragment exploration
@@ -395,4 +400,4 @@ def modular_planning(map, fragment, copies):
 
     print('all fragments explored')
 
-    return agent_positions, step_checkpoints, rollout_checkpoints
+    return agent_positions, step_checkpoints, rollout_checkpoints, time_checkpoints

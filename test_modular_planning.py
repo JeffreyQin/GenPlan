@@ -775,10 +775,14 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                         elif(past_pos[1] < agent_path[path_index][1]):
                             action = 4
                         
-                        past_pos = agent_path[path_index]
+                        
                         past_path.append(past_pos)
+                        generator.observed = generator.observed.union(generator.get_observation(past_pos))
+                        
                         exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
+                        past_pos = agent_path[path_index]
 
+                    generator.observed = generator.observed.union(generator.get_observation(past_pos))
                     past_check_point = pos_indices[checkpoint_index]
                     checkpoint_index += 1
                     #observed.update(new_obs)
@@ -856,7 +860,7 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 
     pygame.quit()
 
-agent_path, checkpoints = modular_planning(map5, fragment5, copies5)
+agent_path, checkpoints, rolloutcheckpoints = modular_planning(map5, fragment5, copies5)
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
