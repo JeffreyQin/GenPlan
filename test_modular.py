@@ -249,11 +249,13 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                             action = 1
                         elif(past_pos[1] < agent_path[path_index][1]):
                             action = 3
-                            
+
                         past_pos = agent_path[path_index]
                         past_path.append(past_pos)
+                        
                         exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
                         generator.observed.add(new_agent_pos)
+                        generator.observed.add(past_pos)
                         generator.observed = generator.observed.union(generator.get_observation(past_pos))
 
                         path_index += 1

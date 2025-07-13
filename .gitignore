@@ -1,3 +1,8 @@
 .env
 
 /test
+/venv
+
+/maps/__pycache__
+
+/__pycache__
