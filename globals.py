@@ -1,3 +1,10 @@
 total_rollout = 0
 exploration_steps = 100
 num_simulations = 200
+
+total_simul_actions = 0
+total_simul_limit = 995813
+total_simul_reached = False
+
+naive_start_time = None
+naive_time_limit = 13.71082854270935

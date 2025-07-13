@@ -3,13 +3,14 @@ import math
 import globals
 from tree_builder import Node
 from generator import Generator 
+import time
 # #chat let me lock in rq
 
 
 class POMCP():
 
 
-    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 8, num_simulations=1000): #set depth to high
+    def __init__(self, generator, discount, exploration = 5.0, epsilon = 0.001, depth = 10, num_simulations = 1000): #set depth to high
         """
         generator - black box generator
 
@@ -152,7 +153,7 @@ class POMCP():
         return best_action
 
 
-    def search(self, root: Node) -> int:
+    def search(self, root: Node, simul_limit=False, time_limit = False) -> int:
         """
         Search will take a node and return an integer corresponding to the best action
         """
@@ -162,11 +163,15 @@ class POMCP():
             return
         count = 0
         while count < self.num_simulations: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+            
+            if simul_limit and globals.total_simul_actions >= globals.total_simul_limit:
+                break
+            if time_limit and time.time() - globals.naive_start_time >= globals.naive_time_limit:
+                break
 
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
             count += 1
-            globals.total_rollout += 1
 
         best_action:int = self.best_action_index(root)
         
