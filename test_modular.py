@@ -770,12 +770,12 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                         if(past_pos[0] > agent_path[path_index][0]):
                             action = 0
                         elif(past_pos[0] < agent_path[path_index][0]):
-                            action = 3
-                        elif(past_pos[1] > agent_path[path_index][1]):
                             action = 2
+                        elif(past_pos[1] > agent_path[path_index][1]):
+                            action = 1
                         elif(past_pos[1] < agent_path[path_index][1]):
-                            action = 4
-                        
+                            action = 3
+                            
                         past_pos = agent_path[path_index]
                         past_path.append(past_pos)
                         exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
