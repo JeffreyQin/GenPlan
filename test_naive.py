@@ -516,7 +516,8 @@ def compute_explored_from_path(fragment: list[list[int, int]], agent_path: list[
     return float(len(generator.observed)) / float(len(generator.rooms))
 
 
-def run_naive_pomcp_simul(fragment: list[list[int, int]]):
+
+def run_naive_pomcp_time(fragment: list[list[int, int]]):
 
     # for experimentation
     # set max depth to number of empty rooms in fragment
@@ -539,12 +540,18 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
+    globals.naive_start_time = time.time()
+
     path = list()
     ctr = 0
     while ctr <= len(generator.rooms):
+
+        if time.time() - globals.naive_start_time >= globals.naive_time_limit:
+            break
+
         path.append(root_node.agent_pos)
 
-        best_action = pomcp_algorithm.search(root_node)
+        best_action = pomcp_algorithm.search(root_node, simul_limit=False, time_limit=True)
 
         if len(root_node.children) == 0:
             break
@@ -553,14 +560,73 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
 
         ctr += 1
 
-    return path
+    return path, time.time() - globals.naive_start_time
+
+def run_naive_pomcp_simul(fragment: list[list[int, int]]):
+
+    height, width = fragment.shape
+
+    # find agent pos
+    agent_pos = None
+    for r in range(height):
+        for c in range(width):
+            if fragment[r, c] == Cell.AGENT.value:
+                agent_pos = (r, c)
+                break
+        if agent_pos:
+            break
+
+    generator = Generator(fragment)
+    pomcp_algorithm = POMCP(generator, discount = 0, depth=len(generator.rooms))
+
+    init_obs, init_belief = generator.get_init_state(agent_pos)
+    root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
+
+    path = list()
+    ctr = 0
+    while ctr <= len(generator.rooms):
+
+        if globals.total_simul_actions >= globals.total_simul_limit:
+            break
+
+        path.append(root_node.agent_pos)
+
+        best_action = pomcp_algorithm.search(root_node, simul_limit = True, time_limit = False)
+
+        if len(root_node.children) == 0:
+            break
+        else:
+            root_node = root_node.children[best_action]
+
+        ctr += 1
+
+    return path, globals.total_simul_actions
+
 
 # Example usage:
 if __name__ == "__main__":
 
-    agent_path = run_naive_pomcp(map2)
-    percentage_explored = compute_explored_from_path(map2, agent_path)
+    agent_path_with_simul_limit, total_generator_calls = run_naive_pomcp_simul(map9)
+    agent_path_with_time_limit, time_elapsed = run_naive_pomcp_time(map9)
 
-    print(percentage_explored)
+    percentage_explored_simul_limit = compute_explored_from_path(map9, agent_path_with_simul_limit)
+    percentage_explored_time_limit = compute_explored_from_path(map9, agent_path_with_time_limit)
 
-    visualize(map2, agent_path)
+    
+    with open('naive_results/map_9_naive.txt', 'a') as f:
+
+        np.savetxt(f, map9, fmt='%d')
+        f.write('\n\n')
+
+        f.write("Exploration result with time limit\n")
+        f.write(f'time elapsed: {time_elapsed}\n')
+        f.write(f'percentage of map explored: {percentage_explored_time_limit}')
+        f.write('\n\n')
+
+        f.write("Exploration result with generator call limit\n")
+        f.write(f'total calls to generator: {total_generator_calls}\n')
+        f.write(f'percentage of map explored: {percentage_explored_simul_limit}')
+        f.write('\n\n')
+
+
+    visualize(map9, agent_path_with_time_limit)

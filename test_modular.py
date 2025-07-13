@@ -6,7 +6,7 @@ import json
 from modular_planner import modular_planning, fragment_planning
 import pygame
 import sys
-from maps import marta_maps
+from maps.marta_maps import *
 
 
 
@@ -343,15 +343,15 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    agent_path, step_checkpoints, rollout_checkpoints, time_checkpoints = modular_planning(marta_maps.map3, marta_maps.fragment3, marta_maps.copies3)
-    explored_checkpoints = visualize_after_checkpoint(marta_maps.map3, step_checkpoints, agent_path)
+    agent_path, step_checkpoints, rollout_checkpoints, time_checkpoints = modular_planning(map9, fragment9, copies9)
+    explored_checkpoints = visualize_after_checkpoint(map9, step_checkpoints, agent_path)
 
-    with open('modular_results/map_3_modular.txt', 'a') as f:
+    with open('modular_results/map_9_modular.txt', 'a') as f:
 
-        np.savetxt(f, marta_maps.map3, fmt='%d')
+        np.savetxt(f, map9, fmt='%d')
         f.write('\n\n')
 
-        np.savetxt(f, marta_maps.fragment3, fmt='%d')
+        np.savetxt(f, fragment9, fmt='%d')
         f.write('\n\n')
         
         f.write("total # steps taken after each fragment")
@@ -363,7 +363,6 @@ if __name__ == "__main__":
         f.write('\n')
         f.write(str(rollout_checkpoints))
         f.write('\n\n')
-
 
         f.write("total time taken to explore each fragment")
         f.write('\n')
