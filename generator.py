@@ -1,6 +1,7 @@
 
 from collections import defaultdict
 from tree_builder import Cell, Action
+import globals
 
 class Generator():
 
@@ -23,6 +24,7 @@ class Generator():
     def get_observation(self, pos: tuple[int, int]):
 
         observations = set()
+        observations.add(pos)
         (r, c) = pos
         
         # 1st quadrant
@@ -132,6 +134,8 @@ class Generator():
         return new position, observation, and reward
         """
 
+        globals.total_simul_actions += 1
+
         dest = (agent_pos[0], agent_pos[1])
         if action == Action.UP.value:
             dest = (agent_pos[0] - 1, agent_pos[1])
@@ -141,10 +145,6 @@ class Generator():
             dest = (agent_pos[0] + 1, agent_pos[1])
         elif action == Action.LEFT.value:
             dest = (agent_pos[0], agent_pos[1] - 1)
-
-        # print(f"{agent_pos } this the agent pos")
-        # print(action)
-        # print( f"{dest} this where the agent gonna be")
 
         if dest not in self.rooms:
             penalty = float(len(curr_obs)) / float(len(self.rooms)) + self.penalty
@@ -169,10 +169,8 @@ class Generator():
         if exit_state in new_obs:
             return True, dest, new_obs, new_belief, 0.0
         else:
-
-            penalty = float(len(new_obs)) / float(len(self.rooms)) + self.penalty 
-            penalty_2 = float(num_new_obs) / float(len(self.rooms)) + self.penalty
-            return False, dest, new_obs, new_belief, penalty_2
+            penalty = float(num_new_obs) / float(len(self.rooms)) + self.penalty
+            return False, dest, new_obs, new_belief, penalty
             
 
     def get_penalty(self, curr_obs: set[tuple[int, int]]):

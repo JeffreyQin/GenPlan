@@ -200,7 +200,7 @@ def run_fragment_pomcp(subtrees, fragment: list[list[int, int]], agent_pos: tupl
                 num_fragment_rooms += 1
 
     generator = Generator(fragment)
-    pomcp_algorithm = POMCP(generator, discount = 0, depth=num_fragment_rooms)
+    pomcp_algorithm = POMCP(generator, discount = 0, depth=len(generator.rooms))
 
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
@@ -209,7 +209,7 @@ def run_fragment_pomcp(subtrees, fragment: list[list[int, int]], agent_pos: tupl
 
     path = list()
     ctr = 0
-    while ctr <= globals.exploration_steps:
+    while ctr <= len(generator.rooms):
         path.append(root_node.agent_pos)
 
         best_action = pomcp_algorithm.search(root_node)
@@ -387,10 +387,10 @@ def modular_planning(map, fragment, copies):
         logging.info("path inside this fragment")
         logging.info(fragment_path)
         logging.info(f"current completed steps: {len(agent_positions)}")
-        logging.info(f"number of rollouts: {globals.total_rollout}")
+        logging.info(f"number of generator calls: {globals.total_simul_actions}")
 
         step_checkpoints.append(len(agent_positions))
-        rollout_checkpoints.append(globals.total_rollout)
+        rollout_checkpoints.append(globals.total_simul_actions)
         time_checkpoints.append(fragment_time - start_time)
         copies_explored.add(copy['top left'])
 
