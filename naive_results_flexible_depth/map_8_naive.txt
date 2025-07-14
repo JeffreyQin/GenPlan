@@ -1,0 +1,17 @@
+0 2 2 0 2 2 0 2 2 0
+0 2 2 0 2 2 0 2 2 0
+0 0 2 0 0 2 0 0 2 0
+2 3 2 2 2 2 2 2 2 0
+0 0 0 0 2 0 0 2 0 0
+0 0 0 2 2 0 2 2 0 0
+0 0 0 2 2 0 2 2 0 0
+
+
+Exploration result with time limit
+time elapsed: 0.029760122299194336
+percentage of map explored: 0.2647058823529412
+
+Exploration result with generator call limit
+total calls to generator: 2581
+percentage of map explored: 0.2647058823529412
+
