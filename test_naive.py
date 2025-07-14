@@ -542,7 +542,7 @@ def run_naive_pomcp_time(fragment: list[list[int, int]]):
 
     globals.naive_start_time = time.time()
 
-    path = list()
+    path = [agent_pos]
     ctr = 0
     while ctr <= len(generator.rooms):
 
@@ -582,7 +582,7 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
-    path = list()
+    path = [agent_pos]
     ctr = 0
     while ctr <= len(generator.rooms):
 
@@ -606,27 +606,36 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
 # Example usage:
 if __name__ == "__main__":
 
-    agent_path_with_simul_limit, total_generator_calls = run_naive_pomcp_simul(map9)
-    agent_path_with_time_limit, time_elapsed = run_naive_pomcp_time(map9)
 
-    percentage_explored_simul_limit = compute_explored_from_path(map9, agent_path_with_simul_limit)
-    percentage_explored_time_limit = compute_explored_from_path(map9, agent_path_with_time_limit)
+    time_arr = [0.0024161338806152344, 0.003303050994873047, 0.00397801399230957, 0.00481724739074707, 0.005533933639526367, 0.006269216537475586, 0.007014036178588867, 0.0076770782470703125, 0.008861064910888672, 0.00970602035522461, 0.010797977447509766, 0.011675119400024414, 0.013144969940185547, 0.013923168182373047, 0.014605998992919922, 0.015343189239501953, 0.016147851943969727, 0.016810894012451172, 0.017657041549682617, 0.018507003784179688]
+    roll_arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    with open('naive_results/map_12_naive.txt', 'a') as f:
+
+        np.savetxt(f, map12, fmt='%d')
+        f.write('\n\n')
+
+    for i in range(len(time_arr)):
+        globals.naive_time_limit = time_arr[i]
+        globals.total_simul_limit = roll_arr[i]
+
+        agent_path_with_simul_limit, total_generator_calls = run_naive_pomcp_simul(map12)
+        agent_path_with_time_limit, time_elapsed = run_naive_pomcp_time(map12)
+
+        percentage_explored_simul_limit = compute_explored_from_path(map12, agent_path_with_simul_limit)
+        percentage_explored_time_limit = compute_explored_from_path(map12, agent_path_with_time_limit)
 
     
-    with open('naive_results/map_9_naive.txt', 'a') as f:
+        with open('naive_results/map_12_naive.txt', 'a') as f:
 
-        np.savetxt(f, map9, fmt='%d')
-        f.write('\n\n')
+            f.write("Exploration result with time limit\n")
+            f.write(f'time elapsed: {time_elapsed}\n')
+            f.write(f'percentage of map explored: {percentage_explored_time_limit}')
+            f.write('\n\n')
 
-        f.write("Exploration result with time limit\n")
-        f.write(f'time elapsed: {time_elapsed}\n')
-        f.write(f'percentage of map explored: {percentage_explored_time_limit}')
-        f.write('\n\n')
+            f.write("Exploration result with generator call limit\n")
+            f.write(f'total calls to generator: {total_generator_calls}\n')
+            f.write(f'percentage of map explored: {percentage_explored_simul_limit}')
+            f.write('\n\n')
 
-        f.write("Exploration result with generator call limit\n")
-        f.write(f'total calls to generator: {total_generator_calls}\n')
-        f.write(f'percentage of map explored: {percentage_explored_simul_limit}')
-        f.write('\n\n')
-
-
-    visualize(map9, agent_path_with_time_limit)
+    visualize(map12, agent_path_with_time_limit)
+    visualize(map12, agent_path_with_simul_limit)

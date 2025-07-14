@@ -1,25 +1,7 @@
-2 2 0 0 2 2 0 0 0
-2 2 0 0 2 2 0 0 0
-0 2 0 0 0 2 0 0 0
-2 2 2 2 2 2 2 2 2
-0 0 0 2 0 0 0 2 0
-0 0 0 2 2 0 0 3 2
-0 0 0 2 2 0 0 2 2
-
-
-2 2 0
-2 2 0
-0 2 0
-
-
-total # steps taken after each fragment
-[4, 10, 16, 22]
-
-total # rollouts executed after each fragment
-[1000, 1000, 1000, 1000]
 
 % of rooms explored after each fragment
-[0.4827586206896552, 0.5862068965517241, 0.7586206896551724, 0.8620689655172413]
+[0.4827586206896552, 0.6551724137931034, 0.8275862068965517, 1.0]
+
 2 2 0 0 2 2 0 0 0
 2 2 0 0 2 2 0 0 0
 0 2 0 0 0 2 0 0 0
@@ -37,11 +19,11 @@ total # rollouts executed after each fragment
 total # steps taken after each fragment
 [4, 10, 16, 22]
 
-total # rollouts executed after each fragment
-[1000, 1000, 1000, 1000]
+total # calls to generator executed after each fragment
+[2569, 2569, 2569, 2569]
 
 total time taken to explore each fragment
-[0.015362977981567383, 0.015548944473266602, 0.01566791534423828, 0.015768051147460938]
+[0.021286725997924805, 0.021541118621826172, 0.02170109748840332, 0.021836042404174805]
 
 % of rooms explored after each fragment
 [0.4827586206896552, 0.6551724137931034, 0.8275862068965517, 1.0]

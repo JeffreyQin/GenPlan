@@ -343,15 +343,15 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 # Example usage:
 if __name__ == "__main__":
     # You must define map4 and agent_path before this call
-    agent_path, step_checkpoints, rollout_checkpoints, time_checkpoints = modular_planning(map3, fragment3, copies3)
-    explored_checkpoints = visualize_after_checkpoint(map3, step_checkpoints, agent_path)
+    agent_path, step_checkpoints, rollout_checkpoints, time_checkpoints = modular_planning(map12, fragment12, copies12)
+    explored_checkpoints = visualize_after_checkpoint(map12, step_checkpoints, agent_path)
 
-    with open('modular_results/map_3_modular.txt', 'a') as f:
+    with open('modular_results/map_12_modular.txt', 'a') as f:
 
-        np.savetxt(f, map3, fmt='%d')
+        np.savetxt(f, map12, fmt='%d')
         f.write('\n\n')
 
-        np.savetxt(f, fragment3, fmt='%d')
+        np.savetxt(f, fragment12, fmt='%d')
         f.write('\n\n')
         
         f.write("total # steps taken after each fragment")

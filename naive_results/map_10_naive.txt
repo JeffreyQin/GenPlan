@@ -1,7 +1,4 @@
 
-% of rooms explored after each fragment
-[0.32084309133489464, 0.40046838407494145, 0.48009367681498827, 0.6206088992974239, 0.7002341920374707, 0.8407494145199064, 0.9203747072599532, 1.0]
-
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -19,20 +16,20 @@
 2 2 2 2 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 2 2 2 2
 0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
 0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
-0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 3 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
-0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
-0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
-2 2 2 2 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 2 2 2 2
-0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
-0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
 0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
 0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
 0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
 2 2 2 2 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 2 2 2 2
+0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
+0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
+0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
+0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
+0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
+2 2 2 2 0 0 0 2 2 2 2 2 2 2 2 3 2 2 2 2 2 2 2 2 0 0 0 2 2 2 2
 0 2 2 2 0 0 0 2 2 2 0 0 2 2 2 2 2 2 2 0 0 2 2 2 0 0 0 2 2 2 0
 0 0 2 2 0 0 0 2 2 0 0 0 0 2 2 2 2 2 0 0 0 0 2 2 0 0 0 2 2 0 0
 0 0 0 2 2 2 2 2 0 0 0 0 0 0 2 2 2 0 0 0 0 0 0 2 2 2 2 2 0 0 0
@@ -49,24 +46,67 @@
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
 
-0 0 0 2 2 2 2 2 0 0 0
-0 0 2 2 0 0 0 2 2 0 0
-0 2 2 2 0 0 0 2 2 2 0
-2 2 2 2 0 0 0 2 2 2 2
-0 2 2 2 0 0 0 2 2 2 0
-0 0 2 2 0 0 0 2 2 0 0
-0 0 0 2 2 2 2 2 0 0 0
+Exploration result with time limit
+time elapsed: 11.895709991455078
+percentage of map explored: 0.24121779859484777
 
+Exploration result with generator call limit
+total calls to generator: 474114
+percentage of map explored: 0.24121779859484777
 
-total # steps taken after each fragment
-[21, 56, 92, 134, 170, 212, 247, 282]
+Exploration result with time limit
+time elapsed: 11.911535024642944
+percentage of map explored: 0.24121779859484777
 
-total # calls to generator executed after each fragment
-[473901, 473901, 940052, 940052, 940052, 940052, 940052, 940052]
+Exploration result with generator call limit
+total calls to generator: 581601
+percentage of map explored: 0.24121779859484777
 
-total time taken to explore each fragment
-[11.875154972076416, 11.876729965209961, 24.29278588294983, 24.2944598197937, 24.29579186439514, 24.297294855117798, 24.29865598678589, 24.30006694793701]
+Exploration result with time limit
+time elapsed: 24.316394090652466
+percentage of map explored: 0.24121779859484777
 
-% of rooms explored after each fragment
-[0.32084309133489464, 0.40046838407494145, 0.48009367681498827, 0.6206088992974239, 0.7002341920374707, 0.8407494145199064, 0.9203747072599532, 1.0]
+Exploration result with generator call limit
+total calls to generator: 940478
+percentage of map explored: 0.24121779859484777
+
+Exploration result with time limit
+time elapsed: 24.352285861968994
+percentage of map explored: 0.24121779859484777
+
+Exploration result with generator call limit
+total calls to generator: 1155474
+percentage of map explored: 0.24121779859484777
+
+Exploration result with time limit
+time elapsed: 24.341405153274536
+percentage of map explored: 0.24121779859484777
+
+Exploration result with generator call limit
+total calls to generator: 1372246
+percentage of map explored: 0.24121779859484777
+
+Exploration result with time limit
+time elapsed: 24.309412002563477
+percentage of map explored: 0.24121779859484777
+
+Exploration result with generator call limit
+total calls to generator: 1588200
+percentage of map explored: 0.24121779859484777
+
+Exploration result with time limit
+time elapsed: 24.33259415626526
+percentage of map explored: 0.24121779859484777
+
+Exploration result with generator call limit
+total calls to generator: 1802202
+percentage of map explored: 0.24121779859484777
+
+Exploration result with time limit
+time elapsed: 24.30854082107544
+percentage of map explored: 0.24121779859484777
+
+Exploration result with generator call limit
+total calls to generator: 2018123
+percentage of map explored: 0.24121779859484777
 

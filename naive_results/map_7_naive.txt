@@ -1,0 +1,42 @@
+
+2 2 0 0 2 2 0 0 0
+2 2 0 0 2 2 0 0 0
+0 2 0 0 0 2 0 0 0
+3 2 2 2 2 2 2 2 2
+0 0 0 2 0 0 0 2 0
+0 0 0 2 2 0 0 2 2
+0 0 0 2 2 0 0 2 2
+
+
+Exploration result with time limit
+time elapsed: 0.021405935287475586
+percentage of map explored: 0.3103448275862069
+
+Exploration result with generator call limit
+total calls to generator: 2579
+percentage of map explored: 0.3103448275862069
+
+Exploration result with time limit
+time elapsed: 0.02173900604248047
+percentage of map explored: 0.3103448275862069
+
+Exploration result with generator call limit
+total calls to generator: 3919
+percentage of map explored: 0.3103448275862069
+
+Exploration result with time limit
+time elapsed: 0.022028207778930664
+percentage of map explored: 0.3103448275862069
+
+Exploration result with generator call limit
+total calls to generator: 4854
+percentage of map explored: 0.3103448275862069
+
+Exploration result with time limit
+time elapsed: 0.022054195404052734
+percentage of map explored: 0.3103448275862069
+
+Exploration result with generator call limit
+total calls to generator: 5618
+percentage of map explored: 0.3103448275862069
+

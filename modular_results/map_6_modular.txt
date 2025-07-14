@@ -17,8 +17,11 @@
 total # steps taken after each fragment
 [9, 26, 43]
 
-total # rollouts executed after each fragment
-[6000, 6000, 6000]
+total # calls to generator executed after each fragment
+[54578, 54578, 54578]
+
+total time taken to explore each fragment
+[0.6710109710693359, 0.6714930534362793, 0.6717591285705566]
 
 % of rooms explored after each fragment
 [0.5, 0.75, 1.0]
