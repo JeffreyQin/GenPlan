@@ -316,7 +316,7 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
                         past_path.append(past_pos)
                         exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
                         generator.observed.add(new_agent_pos)
-
+                        generator.observed.add(past_pos)
                         path_index += 1
 
                     past_check_point = pos_indices[checkpoint_index]
