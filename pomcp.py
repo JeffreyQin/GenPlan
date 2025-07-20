@@ -51,7 +51,9 @@ class POMCP():
         rollout function for exploring new actions/states
         """
         #globals.total_rollout += 1
-        if depth > self.depth_limit:
+        globals.simul_rollout_count += 1
+
+        if depth > self.depth_limit or globals.simul_rollout_count >= globals.simul_rollout_limit:
             return self.generator.get_penalty(node.obs)
         
         random_action = random.randint(0,3)
@@ -71,11 +73,12 @@ class POMCP():
         simulate function for searching
         """
         #in_tree, n = self.is_in_tree(node)
+        globals.simul_rollout_count += 1
         node.num_visited += 1
 
         # print(f"\n--- Simulating from state {state} at depth {depth} ---")
         # print(f"Node ID: {node.id}, Visited: {node.num_visited}")
-        if(depth > self.depth_limit):
+        if(depth > self.depth_limit or globals.simul_rollout_count >= globals.simul_rollout_limit):
             return self.generator.get_penalty(node.obs)
 
         if not node.id in self.tree:
@@ -162,7 +165,7 @@ class POMCP():
             print("all rooms observerd")
             return
         count = 0
-        while count < self.num_simulations: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < self.num_simulations and globals.simul_rollout_count <= globals.simul_rollout_limit: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             
             if simul_limit and globals.total_simul_actions >= globals.total_simul_limit:
                 break
