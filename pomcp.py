@@ -29,22 +29,6 @@ class POMCP():
 
         # used to track which nodes are currently in the tree
         self.tree: set[str] = set()
-        #self.tree: dict[tuple[int,int], list[Node]] = dict()#surely theres a better way to do this
-
-    # def is_in_tree(self, node: Node):
-    #     """
-    #     accepts a node and first comapres to see whether the agent position is in the tree then look for nodes w/ the same belief and same agent_pos. Returns false and None if not in the tree, returns the 
-    #     node and True if node is found ot be in the tree
-    #     """
-    #     if(node.agent_pos in self.tree):
-    #         belief_checklist = self.tree[node.agent_pos]
-    #         for n in belief_checklist:
-    #             if(node.obs == n.obs):
-    #                 return True, n
-
-    #         return False, None
-    #     else:
-    #         return False, None
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int)->float:
         """
@@ -82,12 +66,8 @@ class POMCP():
             return self.generator.get_penalty(node.obs)
 
         if not node.id in self.tree:
-            #print("Node is new, expanding")
+
             self.tree.add(node.id)
-            # if(node.agent_pos in self.tree):
-            #     self.tree[node.agent_pos].append(node)
-            # else:
-            #     self.tree[node.agent_pos] = [node] #add it to the tree
 
             for a in range(4):
                 _, new_pos, new_obs, new_belief, _ = self.generator.generate(state, node.agent_pos, node.obs, node.belief, a)
@@ -95,8 +75,6 @@ class POMCP():
 
             return self.rollout(node, state, depth)
         else:
-            #node = n
-            #print("its not just rollouts dw ")
 
             action_values: list[float] = list()
             for a in range(4):
@@ -104,8 +82,7 @@ class POMCP():
 
             chosen_a :int = action_values.index(max(action_values)) # a is the action you will take
 
-            # print(f"UCB1 values: {action_values}")
-            # print(f"Chosen action: {chosen_a}")
+
 
             exit_found, new_pos, new_obs, new_belief, reward = self.generator.generate(state, node.agent_pos, node.obs, node.belief, chosen_a)
 

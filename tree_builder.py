@@ -30,24 +30,25 @@ class Node():
 
         self.belief: set[tuple[int, int]] = belief
         self.children: dict[int, Node] = defaultdict(lambda: None)
-        self.action_values: list[int, int, int, int] = [0,0,0,0]#is it correct to initialize everything to 0?
+        self.action_values: list[float] = [0.0, 0.0, 0.0, 0.0]
 
-        self.id = parent_id + str(parent_a)
-        self.encode()
+        self.id = parent_id + str(parent_a) if parent_id else "#"
 
-    def encode(self):
-        """
-        encode current node into a string
-        
-        used for tracking purposes by pomcp
-        """
-        self.encoding = ""
-        self.encoding += str(self.agent_pos[0]) + "," + str(self.agent_pos[1]) + "|"
 
-        obs_list = list(self.obs)
-        obs_list = sorted(obs_list)
-        for obs in obs_list:
-            self.encoding += str(obs[0]) + "," + str(obs[1]) + "|"
+class EscapeNode():
+    """
+    node class for escape search MCTS
+    """
+    def __init__(self, agent_pos: tuple[int, int], parent_id: str = "", parent_a: int = -1):
+        self.agent_pos: tuple[int, int] = agent_pos
+        self.num_visited: int = 0
+        self.value: float = 0.0
+
+        self.children: dict[int, EscapeNode] = defaultdict(lambda: None)
+        self.action_values: list[float] = [0.0, 0.0, 0.0, 0.0]
+
+        self.id = parent_id + str(parent_a) if parent_id else "#"
+
 
 
 class Tree():
