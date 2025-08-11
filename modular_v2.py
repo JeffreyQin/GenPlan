@@ -2,8 +2,9 @@ from collections import defaultdict
 import numpy as np
 from escape_search import EscapeMCTS, EscapeNode
 from tree_builder import Cell
+from fragment_utils import segment_map, fragment_to_map_coords
 
-def compute_exit_penalty(fragment: np.ndarray) -> dict[tuple[int, int], float]:
+def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray) -> dict[tuple[int, int], float]:
     """
     compute penalty for each exit of fragment
     penalty is a maximally simplistic approximation of subsequent work required to reach other unexplored fragments
@@ -24,19 +25,38 @@ def compute_exit_penalty(fragment: np.ndarray) -> dict[tuple[int, int], float]:
         if fragment[r, width - 1] != Cell.WALL.value:
             exits.add((r, width - 1))
 
+    # get global map coordinates for fragment
+    global_coords = fragment_to_map_coords(fragment, copy)
+
+    # get all unobserved coords in global map
+    unobserved_cells = list()
+    map_height, map_width = map.shape
+    for i in range(map_height):
+        for j in range(map_width):
+            if map[i, j] == Cell.UNOBSERVED.value:
+                unobserved_cells.append((i, j))
+
     # compute penalty for each exit
     for exit in exits:
-        exit_penalty[exit] = 0.5
+        exit_global_coords = global_coords[exit]
+            
+        # calculate sum of manhattan distances to all unexplored cells
+        total_distance = 0
+        for (r, c) in unobserved_cells:
+            distance = abs(exit_global_coords[0] - r) + abs(exit_global_coords[1] - c)
+            total_distance += distance
+        
+        exit_penalty[exit] = total_distance
     
     return exit_penalty
 
 
-def run_escape_search(fragment: np.ndarray, agent_pos: tuple[int, int]):
+def run_escape_search(fragment: np.ndarray, agent_pos: tuple[int, int], copy: dict, map: np.ndarray):
     """
     find optimal escape path
     """
     # Compute exit penalties for the fragment
-    exit_penalty = compute_exit_penalty(fragment)
+    exit_penalty = compute_exit_penalty(fragment, copy, map)
     
     # Create MCTS solver with computed penalties
     mcts = EscapeMCTS(fragment, exit_penalty)
@@ -66,14 +86,31 @@ def run_escape_search(fragment: np.ndarray, agent_pos: tuple[int, int]):
     return escape_path
 
 
-fragment = np.array([
-    [0, 2, 0, 0, 2, 0],
-    [0, 2, 2, 2, 2, 0],
-    [0, 2, 0, 0, 2, 2],
-    [0, 2, 0, 0, 0, 0],
-    [0, 2, 2, 2, 3, 0],
-    [0, 0, 0, 0, 0, 0]
-])
-agent_pos = (4, 4)
-result = run_escape_search(fragment, agent_pos)
-print(result)
+
+# Test code
+if __name__ == "__main__":
+    fragment = np.array([
+        [0, 2, 0, 0, 2, 0],
+        [0, 2, 2, 2, 2, 0],
+        [0, 2, 0, 0, 2, 2],
+        [0, 2, 0, 0, 0, 0],
+        [0, 2, 2, 2, 3, 0],
+        [0, 0, 0, 0, 0, 0]
+    ])
+    
+    # Create a sample copy dictionary for testing
+    copy = {
+        "top left": (0, 0),
+        "rotations": 0,
+        "reflect": False
+    }
+    
+    # Create a sample global map for testing
+    map = np.full((20, 20), Cell.UNOBSERVED.value)
+    map[0:6, 0:6] = fragment  # Place fragment in the map
+    
+    agent_pos = (4, 4)
+    
+    # Test the escape search
+    result = run_escape_search(fragment, agent_pos, copy, map)
+    print("Escape path:", result)
