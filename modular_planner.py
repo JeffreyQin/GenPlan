@@ -5,102 +5,12 @@ import time
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
-from value_iteration import ValueIteration
-from fragment_utils import segment_map, fragment_to_map_coords
+from fragment_utils import segment_map, fragment_to_map_coords, get_observation
 
 
 import logging
 
 logging.basicConfig(level=logging.INFO)  
-
-def get_observation(self, map: list[list[int, int]], pos: tuple[int, int]):
-
-    observations = set()
-    (r, c) = pos
-    
-    # 1st quadrant
-    c_left = 0
-    
-    for r_ in range(r, -1, -1):
-        columns = []
-        for c_ in range(c, c_left-1, -1):
-
-            if map[r_][c_] == Cell.WALL.value:
-                break
-
-            columns.append(c_)
-
-            if map[r_][c_] == Cell.UNOBSERVED.value:
-                observations.add((r_, c_))
-        
-        if not columns:
-            break
-
-        c_left = columns[-1]
-
-    # 2nd quadrant
-    c_right = map.shape[1] - 1
-
-    for r_ in range(r, -1, -1):
-        columns = []
-        for c_ in range(c, c_right+1):
-
-            if map[r_][c_] == Cell.WALL.value:
-                break
-
-            columns.append(c_)
-
-            if map[r_][c_] == Cell.UNOBSERVED.value:
-                observations.add((r_, c_))
-
-        if not columns:
-            break
-
-        c_right = columns[-1]
-
-    # 3rd quadrant
-    c_left = 0
-    
-    for r_ in range(r, map.shape[0]):
-        columns = []
-
-        for c_ in range(c, c_left-1, -1):
-
-            if map[r_][c_] == Cell.WALL.value:
-                break
-
-            columns.append(c_)
-
-            if map[r_][c_] == Cell.UNOBSERVED.value:
-                observations.add((r_, c_))
-        
-        if not columns:
-            break
-
-        c_left = columns[-1]
-
-    # 4th quadrant
-    c_right = map.shape[1] - 1
-    
-    for r_ in range(r, map.shape[0]):
-        columns = []
-        for c_ in range(c, c_right+1):
-
-            if map[r_][c_] == Cell.WALL.value:
-                break
-
-            columns.append(c_)
-
-            if map[r_][c_] == Cell.UNOBSERVED.value:
-                observations.add((r_, c_))
-
-        if not columns:
-            break
-
-        c_right = columns[-1]
-        
-    return observations
-
 
 def step_heuristic(tree, segmentation, copies_explored, node_id):
     """

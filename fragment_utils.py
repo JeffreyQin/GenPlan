@@ -18,12 +18,6 @@ def segment_map(fragment, copies):
             for del_i in range(cp_height):
                 for del_j in range(cp_width):
                     i, j = tl_i + del_i, tl_j + del_j
-                    # Would need overall size...
-                    # if i >= height or j >= width:
-                    #    continue
-
-                    # TODO: Optimize by creating and transforming
-                    # the full index matrix at once.
                     
                     # map del_i, del_j to offsets in original fragment
 
@@ -57,3 +51,94 @@ def fragment_to_map_coords(fragment, copy):
       for j in range(indices.shape[2]):
          frag_to_map[(int(indices[0,i,j]), int(indices[1,i,j]))] = (i+tl_i, j+tl_j)
    return frag_to_map
+
+
+def get_observation(map: list[list[int, int]], pos: tuple[int, int]):
+    """
+    Returns a set of coordinates of all new rooms observed from the current pos
+    """
+    observations = set()
+    (r, c) = pos
+    
+    # 1st quadrant
+    c_left = 0
+    
+    for r_ in range(r, -1, -1):
+        columns = []
+        for c_ in range(c, c_left-1, -1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+        
+        if not columns:
+            break
+
+        c_left = columns[-1]
+
+    # 2nd quadrant
+    c_right = map.shape[1] - 1
+
+    for r_ in range(r, -1, -1):
+        columns = []
+        for c_ in range(c, c_right+1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+
+        if not columns:
+            break
+
+        c_right = columns[-1]
+
+    # 3rd quadrant
+    c_left = 0
+    
+    for r_ in range(r, map.shape[0]):
+        columns = []
+
+        for c_ in range(c, c_left-1, -1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+        
+        if not columns:
+            break
+
+        c_left = columns[-1]
+
+    # 4th quadrant
+    c_right = map.shape[1] - 1
+    
+    for r_ in range(r, map.shape[0]):
+        columns = []
+        for c_ in range(c, c_right+1):
+
+            if map[r_][c_] == Cell.WALL.value:
+                break
+
+            columns.append(c_)
+
+            if map[r_][c_] == Cell.UNOBSERVED.value:
+                observations.add((r_, c_))
+
+        if not columns:
+            break
+
+        c_right = columns[-1]
+        
+    return observations

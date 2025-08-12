@@ -15,6 +15,7 @@ class Action(Enum):
     RIGHT = 1
     DOWN = 2
     LEFT = 3
+    EXPLORE = 4
 
 
 class Node():
