@@ -2,15 +2,21 @@
 from collections import defaultdict
 from tree_builder import Cell, Action
 import globals
+from fragment_utils import *
 
-class Generator():
 
-    def __init__(self, map, agent_r = 5, penalty = -1.0):
-        
+class BridgeGenerator():
+
+    def __init__(self, map, fragment, copies):
+
         self.map: list[list[int]] = map
+        self.fragment: list[list[int]] = fragment
+        self.copies: dict = copies # unexplored copies
+
+        self.segmentation: dict = segment_map(fragment, copies)
+
         self.map_dims: tuple[int, int] = map.shape
-        self.agent_r: int = agent_r
-        self.penalty: float = penalty
+        self.frag_dims: tuple[int, int] = fragment.shape
 
         self.rooms: set[tuple[int, int]] = set()
         self.observed: set[tuple[int, int]] = set()
@@ -19,7 +25,159 @@ class Generator():
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
+        
+    def is_fragment_border(self, pos: tuple[int, int]) -> bool:
+        """
+        Check if given position is at a unexplored fragment border
+        """
+        if pos not in self.segmentation:
+            return False
 
+        copy, base_r, base_c = self.segmentation[pos]
+        return (base_r == 0 or base_r == self.frag_dims[0] - 1 or
+                base_c == 0 or base_c == self.frag_dims[1] - 1)
+
+
+    def get_observation(self, pos: tuple[int, int]) -> set[tuple[int, int]]:
+        """
+        Get observation from current position
+        """
+        observations = set()
+        observations.add(pos)
+        (r, c) = pos
+        
+        # 1st quadrant
+        c_left = 0
+        for r_ in range(r, -1, -1):
+            columns = []
+            for c_ in range(c, c_left-1, -1):
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+                columns.append(c_)
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+            if not columns:
+                break
+            c_left = columns[-1]
+
+        # 2nd quadrant
+        c_right = self.map_dims[1] - 1
+        for r_ in range(r, -1, -1):
+            columns = []
+            for c_ in range(c, c_right+1):
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+                columns.append(c_)
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+            if not columns:
+                break
+            c_right = columns[-1]
+
+        # 3rd quadrant
+        c_left = 0
+        for r_ in range(r, self.map_dims[0]):
+            columns = []
+            for c_ in range(c, c_left-1, -1):
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+                columns.append(c_)
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+            if not columns:
+                break
+            c_left = columns[-1]
+
+        # 4th quadrant
+        c_right = self.map_dims[1] - 1
+        for r_ in range(r, self.map_dims[0]):
+            columns = []
+            for c_ in range(c, c_right+1):
+                if self.map[r_][c_] == Cell.WALL.value:
+                    break
+                columns.append(c_)
+                if self.map[r_][c_] == Cell.UNOBSERVED.value:
+                    observations.add((r_, c_))
+            if not columns:
+                break
+            c_right = columns[-1]
+            
+        return observations
+    
+    def get_init_state(self, pos: tuple[int, int]):
+        """
+        Get initial observation and belief state
+        """
+        obs = self.get_observation(pos)
+        belief = [room for room in self.rooms if room not in obs]
+        self.observed = self.observed.union(obs)
+        return obs, belief
+
+    def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], curr_belief: set[tuple[int, int]], action: int):
+
+        """
+        Generate next state based on action
+        """
+        # handle explore action (if applicable)
+        if action == Action.EXPLORE.value:
+            return True, agent_pos, curr_obs, curr_belief, self.fragment_penalty
+
+        # handle regular actions
+        dest = (agent_pos[0], agent_pos[1])
+        if action == Action.UP.value:
+            dest = (agent_pos[0] - 1, agent_pos[1])
+        elif action == Action.RIGHT.value:
+            dest = (agent_pos[0], agent_pos[1] + 1)
+        elif action == Action.DOWN.value:
+            dest = (agent_pos[0] + 1, agent_pos[1])
+        elif action == Action.LEFT.value:
+            dest = (agent_pos[0], agent_pos[1] - 1)
+
+        if dest not in self.rooms:
+            return False, agent_pos, curr_obs, curr_belief, -1.0
+
+        # update obs and belief
+        new_obs = curr_obs.copy()
+        new_belief = curr_belief.copy()
+        
+        observation = self.get_observation(dest)
+        num_new_obs = 0
+        for obs in observation:
+            if obs not in observation:
+                num_new_obs += 1
+                new_obs.add(obs)
+            if obs in new_belief:
+                new_belief.remove(obs)
+
+        self.observed = self.observed.union(new_obs)
+
+        if exit_state in new_obs:
+            return True, dest, new_obs, new_belief, 0.0
+        else:
+            penalty = float(num_new_obs) / float(len(self.rooms)) - 1.0
+            return False, dest, new_obs, new_belief, penalty
+
+    def get_penalty(self, curr_obs: set[tuple[int, int]]):
+        
+        penalty = (float(len(curr_obs) / float(len(self.rooms)))) + self.penalty
+        return penalty
+
+    
+
+class Generator():
+
+    def __init__(self, map):
+        
+        self.map: list[list[int]] = map
+        self.map_dims: tuple[int, int] = map.shape
+
+        self.rooms: set[tuple[int, int]] = set()
+        self.observed: set[tuple[int, int]] = set()
+
+        for r in range(self.map_dims[0]):
+            for c in range(self.map_dims[1]):
+                if map[r, c] != Cell.WALL.value:
+                    self.rooms.add((r, c))
     
     def get_observation(self, pos: tuple[int, int]):
 
@@ -147,8 +305,7 @@ class Generator():
             dest = (agent_pos[0], agent_pos[1] - 1)
 
         if dest not in self.rooms:
-            penalty = float(len(curr_obs)) / float(len(self.rooms)) + self.penalty
-            return False, agent_pos, curr_obs, curr_belief, self.penalty
+            return False, agent_pos, curr_obs, curr_belief, -1.0
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
@@ -169,9 +326,9 @@ class Generator():
         if exit_state in new_obs:
             return True, dest, new_obs, new_belief, 0.0
         else:
-            penalty = float(num_new_obs) / float(len(self.rooms)) + self.penalty
+            penalty = float(num_new_obs) / float(len(self.rooms)) - 1.0
             return False, dest, new_obs, new_belief, penalty
-            
+    
 
     def get_penalty(self, curr_obs: set[tuple[int, int]]):
         
