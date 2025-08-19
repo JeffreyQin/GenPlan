@@ -1,6 +1,7 @@
 import random
 import math
 import numpy as np
+import globals
 from tree_builder import Cell, EscapeNode
 
 
@@ -70,7 +71,7 @@ class EscapeMCTS():
         
     
     def rollout(self, node: EscapeNode, depth: int) -> float:
-
+        globals.escape_rollout_count += 1
         if depth > self.depth_limit:
             return self.get_penalty(node.agent_pos)
 
@@ -86,7 +87,7 @@ class EscapeMCTS():
 
 
     def simulate(self, node: EscapeNode, depth: int) -> float:
-    
+        globals.escape_rollout_count += 1
         node.num_visited += 1
 
         if depth > self.depth_limit:

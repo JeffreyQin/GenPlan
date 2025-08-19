@@ -11,3 +11,6 @@ naive_time_limit = 13.71082854270935
 
 simul_rollout_count = 0
 simul_rollout_limit = 10000
+
+escape_rollout_count = 0
+escape_time = 0

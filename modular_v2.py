@@ -1,5 +1,7 @@
 from collections import defaultdict
 import numpy as np
+import time
+import globals
 from escape_search import EscapeMCTS
 from tree_builder import Cell, Node, EscapeNode
 from fragment_utils import segment_map, fragment_to_map_coords
@@ -140,7 +142,11 @@ def run_fragment_search(subtrees: dict, fragment: np.ndarray, agent_pos: tuple[i
 
 
 def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
-    
+    start_time = time.time()
+    time_checkpoints = []
+    escape_rollout_checkpoints = []
+    pomcp_rollout_checkpoints = []
+    bridge_rollout_checkpoints = []
     map_h, map_w = map.shape
     frag_h, frag_w = fragment.shape
     segmentation = segment_map(fragment, copies)
@@ -163,7 +169,7 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
 
     explored_copies = set()
 
-    while len(copies) != len(explored_copies)
+    while len(copies) != len(explored_copies):
         bridge_path = run_bridge_search(map, agent_pos, fragment_utility, segmentation)
         agent_pos = bridge_path[-1] # fragment entrance
         copy, base_r, base_c = segmentation[agent_pos]
@@ -176,6 +182,13 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         
         exit_penalty = compute_exit_penalty(fragment, copy, map)# compute exit penalties for current fragment
         escape_path = run_escape_search(fragment, exit_penalty, fragment_agent_pos)
+        
+        escape_rollout_checkpoints.append(globals.escape_rollout_count)
+        pomcp_rollout_checkpoints.append(globals.simul_rollout_count)
+        checkpoint_time = time.time()
+        time_checkpoints.append(checkpoint_time - start_time)
+        # bridge_rollouts_checkpoints.append()
+
         fragment_agent_pos = escape_path[-1]
 
         agent_pos = coords_mapping[fragment_agent_pos[0], fragment_agent_pos[1]]
