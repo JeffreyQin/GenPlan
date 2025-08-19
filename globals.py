@@ -14,3 +14,6 @@ simul_rollout_limit = 10000
 
 escape_rollout_count = 0
 escape_time = 0
+
+bridge_rollout_count = 0
+bridge_time = 0

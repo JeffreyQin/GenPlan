@@ -1,6 +1,7 @@
 import random
 import math
 import numpy as np
+import globals
 from globals import exploration_steps
 from tree_builder import BridgeNode, Cell, Action
 from generator import BridgeGenerator
@@ -19,7 +20,7 @@ class BridgePOMCP():
         self.tree: set[str] = set()
 
     def rollout(self, node: BridgeNode, state: tuple[int, int], depth: int) -> float:
-        
+        globals.bridge_rollout_count += 1
         if depth > self.depth_limit:
             return self.generator.get_penalty(node.obs)
 
@@ -38,7 +39,7 @@ class BridgePOMCP():
             return reward + self.discount * self.rollout(temp_node, state, depth + 1)
     
     def simulate(self, state: tuple[int, int], node: BridgeNode, depth: int) -> float:
-        
+        globals.bridge_rollout_count += 1
         node.num_visited += 1
 
         if depth > self.depth_limit:

@@ -144,6 +144,9 @@ def run_fragment_search(subtrees: dict, fragment: np.ndarray, agent_pos: tuple[i
 def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
     start_time = time.time()
     time_checkpoints = []
+    bridge_time_checkpoints = []
+    escape_time_checkpoints = []
+    fragment_time_checkpoints = []
     escape_rollout_checkpoints = []
     pomcp_rollout_checkpoints = []
     bridge_rollout_checkpoints = []
@@ -170,24 +173,36 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
     explored_copies = set()
 
     while len(copies) != len(explored_copies):
+        #bridge section of the search
+        bridge_start = time.time()
         bridge_path = run_bridge_search(map, agent_pos, fragment_utility, segmentation)
+        bridge_end = time.time()
+        bridge_time_checkpoints.append(bridge_end - bridge_start)
         agent_pos = bridge_path[-1] # fragment entrance
         copy, base_r, base_c = segmentation[agent_pos]
 
         # mapping from fragment coords to global coords
         coords_mapping = fragment_to_map_coords(fragment, copy)
         
+        #fragment section of the search
+        frag_start = time.time()
         fragment_path = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
+        frag_end = time.time()
+        fragment_time_checkpoints.append(frag_end - frag_start)
         fragment_agent_pos = fragment_path[-1] # fragment-relative position to begin escape
         
         exit_penalty = compute_exit_penalty(fragment, copy, map)# compute exit penalties for current fragment
+
+        esc_start = time.time()
         escape_path = run_escape_search(fragment, exit_penalty, fragment_agent_pos)
+        esc_end = time.time()
+        escape_time_checkpoints.append(esc_end - esc_start)
         
         escape_rollout_checkpoints.append(globals.escape_rollout_count)
         pomcp_rollout_checkpoints.append(globals.simul_rollout_count)
+        bridge_rollout_checkpoints.append(globals.bridge_rollout_count)
         checkpoint_time = time.time()
         time_checkpoints.append(checkpoint_time - start_time)
-        # bridge_rollouts_checkpoints.append()
 
         fragment_agent_pos = escape_path[-1]
 
