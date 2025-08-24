@@ -1,5 +1,6 @@
 from collections import defaultdict
 import numpy as np
+import pygame
 import time
 import globals
 from escape_search import EscapeMCTS
@@ -211,6 +212,143 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         explored_copies.add(copy['top left'])
     
 
+def visualize_after_checkpoint(map_array, pos_indices, agent_path):
+    pygame.init()
+    rows, cols = map_array.shape
+    num_empty_spaces = 0
+    for x in range(rows):
+        for y in range(cols):
+            if map_array[x][y] == 3 or map_array[x][y] == 2:
+                num_empty_spaces += 1
+                
+    screen = pygame.display.set_mode((cols * TILE_SIZE, rows * TILE_SIZE))
+    pygame.display.set_caption("POMCP Moves Visualization")
+    clock = pygame.time.Clock()
+
+    generator = Generator(map_array)
+    generator.get_init_state(agent_path[0])
+    pygame.display.set_caption("Agent Full Path")
+
+    # Font for annotations
+    font = pygame.font.SysFont(None, 16)
+
+    running = True
+    checkpoint = 0
+    past_pos = agent_path[0]
+    path_index = 0
+    action = 0
+    past_path = [past_pos]
+    observed = set()
+
+    past_check_point = 0
+    checkpoint_index = 0
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            # Press SPACE to get the next move from POMCP
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    
+                    for _ in range(pos_indices[checkpoint_index] - past_check_point):
+
+                        path_index += 1
+
+                        if(past_pos[0] > agent_path[path_index][0]):
+                            action = 0
+                        elif(past_pos[0] < agent_path[path_index][0]):
+                            action = 2
+                        elif(past_pos[1] > agent_path[path_index][1]):
+                            action = 1
+                        elif(past_pos[1] < agent_path[path_index][1]):
+                            action = 3
+                        
+                        
+                        past_path.append(past_pos)
+                        generator.observed = generator.observed.union(generator.get_observation(past_pos))
+                        
+                        exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate((0,0), past_pos, set(), set(), action)
+                        past_pos = agent_path[path_index]
+
+                    generator.observed = generator.observed.union(generator.get_observation(past_pos))
+                    past_check_point = pos_indices[checkpoint_index]
+                    checkpoint_index += 1
+                    #observed.update(new_obs)
+                    #print(observed)
+                    #print(generator.observed)
+                            
+
+        # Drawing routine
+        map_surf = pygame.Surface(screen.get_size())
+        for i in range(rows):
+            for j in range(cols):
+                rect = pygame.Rect(j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                tile = map_array[i][j]
+                if tile == 0:
+                    col = COLOR_WALL
+                elif (i, j) in generator.observed:
+                    col = COLOR_OBSERVED
+                elif tile == 5 or tile == 3:
+                    col = COLOR_GOAL
+                else:
+                    col = COLOR_FLOOR
+                pygame.draw.rect(map_surf, col, rect)
+                pygame.draw.rect(map_surf, (0,0,0), rect, 1)
+
+        # 2) Trail surface: draw entire path at once
+        trail_surf = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        px_pts = [
+            (p[1]*TILE_SIZE + TILE_SIZE//2, p[0]*TILE_SIZE + TILE_SIZE//2)
+            for p in past_path
+        ]
+        if len(px_pts) > 1:
+            pygame.draw.lines(trail_surf, (255, 0, 0), False, px_pts, 7)
+            draw_arrow(trail_surf, px_pts[-2], px_pts[-1], (255, 0, 0))
+
+        # 3) Annotations
+        corner_used = {}  # (i,j) → 'top-right' or 'bottom-left'
+
+        for idx, (i, j) in enumerate(past_path):
+            pos = (i, j)
+            text = font.render(str(idx), True, (0, 0, 0))  # black text
+            text_rect = text.get_rect()
+
+            top_right = (j * TILE_SIZE + TILE_SIZE - 2 - text_rect.width, i * TILE_SIZE + 2)
+            bottom_left = (j * TILE_SIZE + 2, i * TILE_SIZE + TILE_SIZE - text_rect.height - 2)
+
+            if corner_used.get(pos) != 'top-right':
+                trail_surf.blit(text, top_right)
+                corner_used[pos] = 'top-right'
+            else:
+                trail_surf.blit(text, bottom_left)
+                corner_used[pos] = 'bottom-left'
+
+        # 4) Final draw
+        screen.blit(map_surf, (0,0))
+        screen.blit(trail_surf, (0,0))
+
+
+        end_i, end_j = past_path[-1]
+        center = (end_j * TILE_SIZE + TILE_SIZE//2, end_i * TILE_SIZE + TILE_SIZE//2)
+        pygame.draw.circle(screen, COLOR_AGENT, center, TILE_SIZE//3)
+
+        start_i, start_j = past_path[0]
+        start_center = (start_j * TILE_SIZE + TILE_SIZE//2, start_i * TILE_SIZE + TILE_SIZE//2)
+        pygame.draw.circle(screen, (0, 255, 255), start_center, TILE_SIZE//3)
+
+        explored_ratio = len(generator.observed) / num_empty_spaces
+        explored_text = font.render(f"Explored: {explored_ratio:.2%}", True, (0, 0, 0))
+        screen.blit(explored_text, (10, 10))
+
+        pygame.display.flip()
+
+        clock = pygame.time.Clock()
+        pygame.display.flip()
+        clock.tick(30)
+
+    pygame.quit()
 
 
 
