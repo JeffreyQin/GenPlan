@@ -3,6 +3,7 @@ import math
 import numpy as np
 import globals
 from tree_builder import Cell, EscapeNode
+from map_utils import *
 
 
 class EscapeMCTS():
@@ -40,33 +41,25 @@ class EscapeMCTS():
             return pos
 
 
-    def is_boundary(self, pos: tuple[int, int]) -> bool:
-        """
-        Check if current position is a boundary cell
-        """
-        return (pos[0] == 0 or pos[0] == self.height - 1 or pos[1] == 0 or pos[1] == self.width - 1)
-
-
     def get_penalty(self, pos: tuple[int, int]) -> float:
         """
         Get penalty for current position
         """
-        if not self.is_boundary(pos):
-            return 0.0
-        
         if pos in self.exit_penalty.keys():
             return -self.exit_penalty[pos]
-        return 0.0
+        else:
+            return 0.0
 
 
-    def UCB1(self, node: EscapeNode, action: int, depth: int) -> float:
+    def UCB1(self, node: EscapeNode, action: int, depth_diff: int) -> float:
         """
         Action selection using exploration-exploitation tradeoff
         """
         if node.children[action].num_visited == 0:
             return float('inf')
         else:
-            return node.action_values[action] / float(depth) + self.c * math.sqrt(
+            depth_diff = max(1, depth_diff)
+            return node.action_values[action] / float(depth_diff) + self.c * math.sqrt(
                     math.log(node.num_visited) / node.children[action].num_visited)
         
     
@@ -75,7 +68,7 @@ class EscapeMCTS():
         if depth > self.depth_limit:
             return self.get_penalty(node.agent_pos)
 
-        if self.is_boundary(node.agent_pos):
+        if node.agent_pos in self.exit_penalty.keys():
             return self.get_penalty(node.agent_pos)
 
         random_action = random.randint(0,3)
@@ -93,7 +86,7 @@ class EscapeMCTS():
         if depth > self.depth_limit:
             return self.get_penalty(node.agent_pos)
         
-        if self.is_boundary(node.agent_pos):
+        if node.agent_pos in self.exit_penalty.keys():
             return self.get_penalty(node.agent_pos)
 
         # if node not currently in tree, expand

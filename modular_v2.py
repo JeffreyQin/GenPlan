@@ -4,39 +4,53 @@ import pygame
 import time
 import globals
 from escape_search import EscapeMCTS
-from tree_builder import Cell, Node, EscapeNode
-from fragment_utils import segment_map, fragment_to_map_coords
+from tree_builder import Cell, Node, EscapeNode, BridgeNode
+from map_utils import segment_map, fragment_to_map_coords, update_map
 from generator import Generator, BridgeGenerator
-from pomcp import POMCP
+from fragment_search import FragmentPOMCP
 from bridge_search import BridgePOMCP
+import math
 
-def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray) -> dict[tuple[int, int], float]:
+# Constants for visualization
+TILE_SIZE = 30
+COLOR_WALL = (100, 100, 100)
+COLOR_OBSERVED = (200, 200, 200)
+COLOR_GOAL = (0, 255, 0)
+COLOR_FLOOR = (255, 255, 255)
+COLOR_AGENT = (255, 0, 0)
+
+def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray, global_coords: dict, segmentation: dict) -> dict[tuple[int, int], float]:
     """
     compute penalty for each exit of fragment
     penalty is a maximally simplistic approximation of subsequent work required to reach other unexplored fragments
     """
     height, width = fragment.shape
-    exits = set()
+    map_height, map_width = map.shape
     exit_penalty = dict()
-
-    # get all border cells
+    exits = set()
+    
+    # get all exit cells
     for c in range(0, width - 1):
         if fragment[0, c] != Cell.WALL.value:
-            exits.add((0, c))
+            map_coords = global_coords[(0, c)]
+            if map_coords[0] > 0 and map[(map_coords[0] - 1, map_coords[1])] != Cell.WALL.value:
+                exits.add((0, c))
         if fragment[height - 1, c] != Cell.WALL.value:
-            exits.add((height - 1, c))
+            map_coords = global_coords[(height - 1, c)]
+            if map_coords[0] < map_height - 1 and map[(map_coords[0] + 1, map_coords[1])] != Cell.WALL.value:
+                exits.add((height - 1, c))
     for r in range(0, height - 1):
         if fragment[r, 0] != Cell.WALL.value:
-            exits.add((r, 0))
+            map_coords = global_coords[(r, 0)]
+            if map_coords[1] > 0 and map[(map_coords[0], map_coords[1] - 1)] != Cell.WALL.value:
+                exits.add((r, 0))
         if fragment[r, width - 1] != Cell.WALL.value:
-            exits.add((r, width - 1))
-
-    # get global map coordinates for fragment
-    global_coords = fragment_to_map_coords(fragment, copy)
+            map_coords = global_coords[(r, width - 1)]
+            if map_coords[1] < map_width - 1 and map[(map_coords[0], map_coords[1] + 1)] != Cell.WALL.value:
+                exits.add((r, width - 1))
 
     # get all unobserved coords in global map
     unobserved_cells = list()
-    map_height, map_width = map.shape
     for i in range(map_height):
         for j in range(map_width):
             if map[i, j] == Cell.UNOBSERVED.value:
@@ -75,7 +89,7 @@ def run_escape_search(fragment: np.ndarray, exit_penalty: dict, agent_pos: tuple
     for _ in range(max_steps):
         escape_path.append(current_node.agent_pos)
 
-        if mcts.is_boundary(current_node.agent_pos):
+        if current_node.agent_pos in mcts.exit_penalty.keys():
             break
 
         best_action = mcts.search(current_node)
@@ -90,60 +104,92 @@ def run_escape_search(fragment: np.ndarray, exit_penalty: dict, agent_pos: tuple
     return escape_path
 
 
-
 def compute_fragment_utility(map: np.ndarray, fragment: np.ndarray, copy: dict):
     """
     compute the utility to explore current fragment
     """
     return np.sum(fragment == Cell.UNOBSERVED.value)
 
-    
-def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], segmentation: dict):
+
+
+def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.ndarray, copies: list[dict]):
     """
     return optimal path to next unexplored fragment
     """
     
-    generator = BridgeGenerator(map, fragment)
+    generator = BridgeGenerator(map, fragment, copies)
+    pomcp_algorithm = BridgePOMCP(generator, depth=len(generator.rooms))
 
+    init_obs, init_belief = generator.get_init_state(agent_pos)
+    root_node = BridgeNode(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
-
-
-def run_fragment_search(subtrees: dict, fragment: np.ndarray, agent_pos: tuple[int, int]):
-    """
-    return the path of exploration within the fragment by pomcp
-    """
-
-    generator = Generator(fragment)
-
-    # initializing root node of subtree if not already exist
-    if agent_pos not in subtrees.keys():
-        init_obs, init_belief = generator.get_init_state(agent_pos)
-        subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
-    root_node = subtrees[agent_pos]
-
-    pomcp_algorithm = POMCP(generator, discount = 0, num_simulations=globals.num_simulations)
-    pomcp_algorithm.search(root_node)
-
-    node_ptr = root_node
     path = list()
-    
+    moves = list()
+    ctr = 0
     ## recursively compute next cell in the fragment by optimal action
-    while True:
-        path.append(node_ptr.agent_pos)
+    while ctr <= len(generator.rooms):
+        path.append(root_node.agent_pos)
+        generator.update_observed(root_node.agent_pos) # keep track of new observations made on the way
 
-        if len(node_ptr.children) == 0:
+        best_action = pomcp_algorithm.search(root_node)
+        moves.append(best_action)
+
+        if len(root_node.children) == 0:
+            break
+        elif best_action == 4: # begin fragment search
             break
         else:
-            a_values: list[int] = [node_ptr.action_values[a] for a in range(4)]
-            a_optimal: int = a_values.index(max(a_values))
-            node_ptr = node_ptr.children[a_optimal]
-    
-    return path
+            root_node = root_node.children[best_action]
 
+        ctr += 1
+    
+    return path, moves, generator.observed
+
+
+def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+
+    # for experimentation
+    # set max depth to number of empty rooms in fragment
+
+    num_fragment_rooms = 0
+    height, width = fragment.shape
+    for r in range(height):
+        for c in range(width):
+            if fragment[r, c] != Cell.WALL.value:
+                num_fragment_rooms += 1
+
+    generator = Generator(fragment)
+    pomcp_algorithm = FragmentPOMCP(generator, depth=len(generator.rooms))
+
+    init_obs, init_belief = generator.get_init_state(agent_pos)
+    root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
+
+    subtrees[agent_pos] = root_node
+
+    path = list()
+    moves = list()
+    ctr = 0
+    while ctr <= len(generator.rooms):
+        path.append(root_node.agent_pos)
+        generator.update_observed(root_node.agent_pos) # keep track of new observations made on the way
+
+        best_action = pomcp_algorithm.search(root_node)
+        moves.append(best_action)
+
+        if len(root_node.children) == 0:
+            break
+        else:
+            root_node = root_node.children[best_action]
+
+        ctr += 1
+
+    return path, moves, generator.observed
 
 
 def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
+
     start_time = time.time()
+
     time_checkpoints = []
     bridge_time_checkpoints = []
     escape_time_checkpoints = []
@@ -151,8 +197,8 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
     escape_rollout_checkpoints = []
     pomcp_rollout_checkpoints = []
     bridge_rollout_checkpoints = []
+
     map_h, map_w = map.shape
-    frag_h, frag_w = fragment.shape
     segmentation = segment_map(fragment, copies)
 
     # get initial agent pos
@@ -162,42 +208,69 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
                 agent_pos = (r, c)
                 map[r, c] = Cell.UNOBSERVED.value
 
-    # compute fragment utilities
-    fragment_utility = dict()
-    for copy in copies:
-        fragment_utility[copy['top left']] = compute_fragment_utility(fragment, map, copy)
-    
-    
+
     # pre-computed policy for in-fragment planning
     fragment_subtrees = dict()
 
     explored_copies = set()
 
     while len(copies) != len(explored_copies):
-        #bridge section of the search
+
+        print("NEW ITERATION")
+
+        print(map)
+        # perform bridge search
         bridge_start = time.time()
-        bridge_path = run_bridge_search(map, agent_pos, fragment_utility, segmentation)
+
+        remaining_copies = [copy for copy in copies if copy['top left'] not in explored_copies]
+        bridge_path, bridge_moves, observation = run_bridge_search(map, agent_pos, fragment, remaining_copies)
+        update_map(map, observation)
+
         bridge_end = time.time()
         bridge_time_checkpoints.append(bridge_end - bridge_start)
+
+        print("Path to next fragment")
+        print(bridge_path)
+
+        print(map)
+
         agent_pos = bridge_path[-1] # fragment entrance
         copy, base_r, base_c = segmentation[agent_pos]
-
+        
         # mapping from fragment coords to global coords
         coords_mapping = fragment_to_map_coords(fragment, copy)
         
-        #fragment section of the search
+        # perform fragment search
         frag_start = time.time()
-        fragment_path = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
+
+        fragment_path, fragment_moves, observation = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
+        update_map(map, [coords_mapping[obs[0], obs[1]] for obs in observation])
+
         frag_end = time.time()
         fragment_time_checkpoints.append(frag_end - frag_start)
+
+        print("Path to explore current fragment")
+        print([coords_mapping[pos[0], pos[1]] for pos in fragment_path])
+
+        print(map)
+
+        # perform escape search
         fragment_agent_pos = fragment_path[-1] # fragment-relative position to begin escape
+
+        exit_penalty = compute_exit_penalty(fragment, copy, map, coords_mapping, segmentation)# compute exit penalties for current fragment
         
-        exit_penalty = compute_exit_penalty(fragment, copy, map)# compute exit penalties for current fragment
+        print('exits')
+        print(exit_penalty.keys())
 
         esc_start = time.time()
+
         escape_path = run_escape_search(fragment, exit_penalty, fragment_agent_pos)
+        
         esc_end = time.time()
         escape_time_checkpoints.append(esc_end - esc_start)
+
+        print("Path to escape current fragment")
+        print([coords_mapping[pos[0], pos[1]] for pos in escape_path])
         
         escape_rollout_checkpoints.append(globals.escape_rollout_count)
         pomcp_rollout_checkpoints.append(globals.simul_rollout_count)
@@ -210,8 +283,8 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         agent_pos = coords_mapping[fragment_agent_pos[0], fragment_agent_pos[1]]
 
         explored_copies.add(copy['top left'])
-    
 
+"""
 def visualize_after_checkpoint(map_array, pos_indices, agent_path):
     pygame.init()
     rows, cols = map_array.shape
@@ -349,33 +422,4 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
         clock.tick(30)
 
     pygame.quit()
-
-
-
-# Test code
-if __name__ == "__main__":
-    fragment = np.array([
-        [0, 2, 0, 0, 2, 0],
-        [0, 2, 2, 2, 2, 0],
-        [0, 2, 0, 0, 2, 2],
-        [0, 2, 0, 0, 0, 0],
-        [0, 2, 2, 2, 3, 0],
-        [0, 0, 0, 0, 0, 0]
-    ])
-    
-    # Create a sample copy dictionary for testing
-    copy = {
-        "top left": (0, 0),
-        "rotations": 0,
-        "reflect": False
-    }
-    
-    # Create a sample global map for testing
-    map = np.full((20, 20), Cell.UNOBSERVED.value)
-    map[0:6, 0:6] = fragment  # Place fragment in the map
-    
-    agent_pos = (4, 4)
-    
-    # Test the escape search
-    result = run_escape_search(fragment, agent_pos, copy, map)
-    print("Escape path:", result)
+"""

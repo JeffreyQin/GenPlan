@@ -1,4 +1,11 @@
 import numpy as np
+from tree_builder import Cell
+
+
+def update_map(map: np.ndarray, observation: set):
+    for obs in observation:
+        map[obs[0], obs[1]] = Cell.OBSERVED.value
+
 
 def segment_map(fragment, copies):
         """

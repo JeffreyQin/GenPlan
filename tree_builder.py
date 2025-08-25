@@ -36,6 +36,24 @@ class Node():
         self.id = parent_id + str(parent_a) if parent_id else "#"
 
 
+class BridgeNode():
+    """
+    Class BridgeNode for bridge search with 5 actions (including EXPLORE)
+    """
+    def __init__(self, agent_pos, obs, belief, parent_id, parent_a):
+        
+        self.agent_pos: tuple[int, int] = agent_pos
+        self.obs: set[tuple[int, int]] = obs
+        self.num_visited: int = 0
+        self.value: float = 0.0
+
+        self.belief: set[tuple[int, int]] = belief
+        self.children: dict[int, 'BridgeNode'] = defaultdict(lambda: None)
+        self.action_values: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0]  # 5 actions including EXPLORE
+
+        self.id = parent_id + str(parent_a) if parent_id else "#"
+
+
 class EscapeNode():
     """
     node class for escape search MCTS

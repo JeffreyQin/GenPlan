@@ -5,7 +5,7 @@ import time
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
 from pomcp import POMCP
-from fragment_utils import segment_map, fragment_to_map_coords, get_observation
+from map_utils import segment_map, fragment_to_map_coords, get_observation
 
 
 import logging
@@ -38,7 +38,7 @@ def step_heuristic(tree, segmentation, copies_explored, node_id):
     return steps + curr_min, [tree.nodes[node_id]['pos']] + curr_min_path
 
 
-def run_fragment_pomcp(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
 
     # for experimentation
     # set max depth to number of empty rooms in fragment
@@ -60,7 +60,7 @@ def run_fragment_pomcp(subtrees, fragment: list[list[int, int]], agent_pos: tupl
 
     path = list()
     ctr = 0
-    while ctr <= len(generator.rooms):
+    while ctr <= len(generator.rooms) or len(generator.observed) == len(generator.rooms):
         path.append(root_node.agent_pos)
 
         best_action = pomcp_algorithm.search(root_node)

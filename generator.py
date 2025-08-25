@@ -2,7 +2,7 @@
 from collections import defaultdict
 from tree_builder import Cell, Action
 import globals
-from fragment_utils import *
+from map_utils import *
 
 
 class BridgeGenerator():
@@ -25,7 +25,27 @@ class BridgeGenerator():
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
+                if map[r, c] == Cell.OBSERVED.value:
+                    self.observed.add((r, c))
         
+        self.num_frag_rooms = np.sum(fragment != Cell.WALL.value)
+
+
+    def get_fragment_penalty(self, pos: tuple[int, int], curr_obs: set) -> float:
+
+        init_step_penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
+        final_step_penalty = (float(len(curr_obs) + self.num_frag_rooms) / float(len(self.rooms))) - 1.0
+        
+        accum_step_penalty = self.num_frag_rooms * (init_step_penalty + final_step_penalty) / 2.0
+        return accum_step_penalty
+
+    
+    def get_penalty(self, curr_obs: set[tuple[int, int]]):
+        
+        penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
+        return penalty
+    
+
     def is_fragment_border(self, pos: tuple[int, int]) -> bool:
         """
         Check if given position is at a unexplored fragment border
@@ -38,71 +58,96 @@ class BridgeGenerator():
                 base_c == 0 or base_c == self.frag_dims[1] - 1)
 
 
-    def get_observation(self, pos: tuple[int, int]) -> set[tuple[int, int]]:
-        """
-        Get observation from current position
-        """
+    
+    def get_observation(self, pos: tuple[int, int]):
+
         observations = set()
         observations.add(pos)
         (r, c) = pos
         
         # 1st quadrant
         c_left = 0
+        
         for r_ in range(r, -1, -1):
             columns = []
             for c_ in range(c, c_left-1, -1):
+
                 if self.map[r_][c_] == Cell.WALL.value:
                     break
+
                 columns.append(c_)
+
                 if self.map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
+            
             if not columns:
                 break
+
             c_left = columns[-1]
 
         # 2nd quadrant
         c_right = self.map_dims[1] - 1
+
         for r_ in range(r, -1, -1):
             columns = []
             for c_ in range(c, c_right+1):
+
                 if self.map[r_][c_] == Cell.WALL.value:
                     break
+
                 columns.append(c_)
+
                 if self.map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
+
             if not columns:
                 break
+
             c_right = columns[-1]
 
         # 3rd quadrant
         c_left = 0
+        
         for r_ in range(r, self.map_dims[0]):
             columns = []
+
             for c_ in range(c, c_left-1, -1):
+
                 if self.map[r_][c_] == Cell.WALL.value:
                     break
+
                 columns.append(c_)
+
                 if self.map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
+            
             if not columns:
                 break
+
             c_left = columns[-1]
 
         # 4th quadrant
         c_right = self.map_dims[1] - 1
+        
         for r_ in range(r, self.map_dims[0]):
             columns = []
             for c_ in range(c, c_right+1):
+
                 if self.map[r_][c_] == Cell.WALL.value:
                     break
+
                 columns.append(c_)
+
                 if self.map[r_][c_] == Cell.UNOBSERVED.value:
                     observations.add((r_, c_))
+
             if not columns:
                 break
+
             c_right = columns[-1]
             
         return observations
+
     
     def get_init_state(self, pos: tuple[int, int]):
         """
@@ -110,8 +155,16 @@ class BridgeGenerator():
         """
         obs = self.get_observation(pos)
         belief = [room for room in self.rooms if room not in obs]
-        self.observed = self.observed.union(obs)
         return obs, belief
+
+
+    def update_observed(self, pos: tuple[int, int]):
+        """
+        keep track of observed rooms by adding new obs from current pos
+        """
+        new_obs = self.get_observation(pos)
+        self.observed = self.observed.union(new_obs)
+
 
     def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], curr_belief: set[tuple[int, int]], action: int):
 
@@ -120,7 +173,7 @@ class BridgeGenerator():
         """
         # handle explore action (if applicable)
         if action == Action.EXPLORE.value:
-            return True, agent_pos, curr_obs, curr_belief, self.fragment_penalty
+            return True, agent_pos, curr_obs, curr_belief, self.get_fragment_penalty(agent_pos, curr_obs)
 
         # handle regular actions
         dest = (agent_pos[0], agent_pos[1])
@@ -134,22 +187,21 @@ class BridgeGenerator():
             dest = (agent_pos[0], agent_pos[1] - 1)
 
         if dest not in self.rooms:
-            return False, agent_pos, curr_obs, curr_belief, -1.0
+            return False, agent_pos, curr_obs, curr_belief, - 1.0
 
         # update obs and belief
         new_obs = curr_obs.copy()
         new_belief = curr_belief.copy()
         
         observation = self.get_observation(dest)
+
         num_new_obs = 0
         for obs in observation:
-            if obs not in observation:
+            if obs not in new_obs:
                 num_new_obs += 1
                 new_obs.add(obs)
             if obs in new_belief:
                 new_belief.remove(obs)
-
-        self.observed = self.observed.union(new_obs)
 
         if exit_state in new_obs:
             return True, dest, new_obs, new_belief, 0.0
@@ -157,19 +209,15 @@ class BridgeGenerator():
             penalty = float(num_new_obs) / float(len(self.rooms)) - 1.0
             return False, dest, new_obs, new_belief, penalty
 
-    def get_penalty(self, curr_obs: set[tuple[int, int]]):
-        
-        penalty = (float(len(curr_obs) / float(len(self.rooms)))) + self.penalty
-        return penalty
 
-    
 
 class Generator():
 
-    def __init__(self, map):
+    def __init__(self, map, agent_r = 5):
         
         self.map: list[list[int]] = map
         self.map_dims: tuple[int, int] = map.shape
+        self.agent_r: int = agent_r
 
         self.rooms: set[tuple[int, int]] = set()
         self.observed: set[tuple[int, int]] = set()
@@ -178,6 +226,7 @@ class Generator():
             for c in range(self.map_dims[1]):
                 if map[r, c] != Cell.WALL.value:
                     self.rooms.add((r, c))
+
     
     def get_observation(self, pos: tuple[int, int]):
 
@@ -281,9 +330,15 @@ class Generator():
             if room not in obs:
                 belief.add(room)
 
-        self.observed = self.observed.union(obs)
         return obs, belief
     
+    def update_observed(self, pos: tuple[int, int]):
+        """
+        keep track of observed rooms by adding new obs from current pos
+        """
+        new_obs = self.get_observation(pos)
+        self.observed = self.observed.union(new_obs)
+
 
     def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], curr_belief: set[tuple[int, int]], action: int):
         """
@@ -305,7 +360,7 @@ class Generator():
             dest = (agent_pos[0], agent_pos[1] - 1)
 
         if dest not in self.rooms:
-            return False, agent_pos, curr_obs, curr_belief, -1.0
+            return False, agent_pos, curr_obs, curr_belief, - 1.0
         
         # summarize new observed cells
         new_obs = curr_obs.copy()
@@ -320,17 +375,15 @@ class Generator():
                 new_obs.add(obs)
             if obs in new_belief:
                 new_belief.remove(obs)
-
-        self.observed = self.observed.union(new_obs)
         
         if exit_state in new_obs:
             return True, dest, new_obs, new_belief, 0.0
         else:
             penalty = float(num_new_obs) / float(len(self.rooms)) - 1.0
             return False, dest, new_obs, new_belief, penalty
-    
+            
 
     def get_penalty(self, curr_obs: set[tuple[int, int]]):
         
-        penalty = (float(len(curr_obs) / float(len(self.rooms)))) + self.penalty
+        penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
         return penalty
