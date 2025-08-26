@@ -17,6 +17,7 @@ class EscapeMCTS():
         self.fragment = fragment
         self.height, self.width = fragment.shape
         self.exit_penalty = exit_penalty
+        self.max_exit_penalty = max([exit_penalty[e] for e in exit_penalty.keys()])
 
         self.c: float = exploration
         self.depth_limit: int = depth_limit
@@ -46,9 +47,9 @@ class EscapeMCTS():
         Get penalty for current position
         """
         if pos in self.exit_penalty.keys():
-            return -self.exit_penalty[pos]
+            return - self.exit_penalty[pos]
         else:
-            return 0.0
+            return - self.max_exit_penalty
 
 
     def UCB1(self, node: EscapeNode, action: int, depth_diff: int) -> float:

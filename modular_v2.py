@@ -27,27 +27,47 @@ def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray, glob
     height, width = fragment.shape
     map_height, map_width = map.shape
     exit_penalty = dict()
-    exits = set()
-    
-    # get all exit cells
-    for c in range(0, width - 1):
+
+    # get all border cells
+    border_cells = set()
+    for c in range(0, width):
         if fragment[0, c] != Cell.WALL.value:
-            map_coords = global_coords[(0, c)]
-            if map_coords[0] > 0 and map[(map_coords[0] - 1, map_coords[1])] != Cell.WALL.value:
-                exits.add((0, c))
+            border_cells.add((0, c))
         if fragment[height - 1, c] != Cell.WALL.value:
-            map_coords = global_coords[(height - 1, c)]
-            if map_coords[0] < map_height - 1 and map[(map_coords[0] + 1, map_coords[1])] != Cell.WALL.value:
-                exits.add((height - 1, c))
-    for r in range(0, height - 1):
+            border_cells.add((height - 1, c))
+    for r in range(0, height):
         if fragment[r, 0] != Cell.WALL.value:
-            map_coords = global_coords[(r, 0)]
-            if map_coords[1] > 0 and map[(map_coords[0], map_coords[1] - 1)] != Cell.WALL.value:
-                exits.add((r, 0))
+            border_cells.add((r, 0))
         if fragment[r, width - 1] != Cell.WALL.value:
-            map_coords = global_coords[(r, width - 1)]
-            if map_coords[1] < map_width - 1 and map[(map_coords[0], map_coords[1] + 1)] != Cell.WALL.value:
-                exits.add((r, width - 1))
+            border_cells.add((r, width - 1))
+
+    # validate all border cells for exit
+    exits = set()
+    for border in border_cells:
+        coords = global_coords[border]
+
+        is_outside_frag = False
+
+        neighbor = list()
+        if coords[0] > 0 and map[coords[0] - 1, coords[1]] != Cell.WALL.value:
+            neighbor.append((coords[0] - 1, coords[1]))
+        if coords[0] < map_height - 1 and map[coords[0] + 1, coords[1]] != Cell.WALL.value:
+            neighbor.append((coords[0] + 1, coords[1]))
+        if coords[1] > 0 and map[coords[0], coords[1] - 1] != Cell.WALL.value:
+            neighbor.append((coords[0], coords[1] - 1))
+        if coords[1] < map_width - 1 and map[coords[0], coords[1] + 1] != Cell.WALL.value:
+            neighbor.append((coords[0], coords[1] + 1))
+
+        for nb in neighbor:
+            if nb not in segmentation.keys():
+                is_outside_frag = True
+            else:
+                neighbor_copy, base_r, base_c = segmentation[nb]
+                if neighbor_copy['top left'] != copy['top left']:
+                    is_outside_frag = True
+            
+        if is_outside_frag:
+            exits.add(border)
 
     # get all unobserved coords in global map
     unobserved_cells = list()
@@ -127,7 +147,7 @@ def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.
     moves = list()
     ctr = 0
     ## recursively compute next cell in the fragment by optimal action
-    while ctr <= len(generator.rooms):
+    while ctr <= len(generator.rooms) * 10:
         path.append(root_node.agent_pos)
         generator.update_observed(root_node.agent_pos) # keep track of new observations made on the way
 
@@ -169,7 +189,7 @@ def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tup
     path = list()
     moves = list()
     ctr = 0
-    while ctr <= len(generator.rooms):
+    while ctr <= len(generator.rooms) * 10:
         path.append(root_node.agent_pos)
         generator.update_observed(root_node.agent_pos) # keep track of new observations made on the way
 
@@ -220,7 +240,6 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print("NEW ITERATION")
         if(i == 12):
             break
-        print(map)
         # perform bridge search
         bridge_start = time.time()
 
@@ -235,8 +254,6 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print(bridge_path)
         agent_path.extend(bridge_path)
         checkpoints.append(len(agent_path))
-
-        print(map)
 
         agent_pos = bridge_path[-1] # fragment entrance
         copy, base_r, base_c = segmentation[agent_pos]
@@ -256,16 +273,12 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print([coords_mapping[pos[0], pos[1]] for pos in fragment_path])
         agent_path.extend([coords_mapping[pos[0], pos[1]] for pos in fragment_path])
         checkpoints.append(len(agent_path))
-        print(map)
 
         # perform escape search
         fragment_agent_pos = fragment_path[-1] # fragment-relative position to begin escape
 
         exit_penalty = compute_exit_penalty(fragment, copy, map, coords_mapping, segmentation)# compute exit penalties for current fragment
         
-        print('exits')
-        print(exit_penalty.keys())
-
         esc_start = time.time()
 
         escape_path = run_escape_search(fragment, exit_penalty, fragment_agent_pos)
