@@ -1,0 +1,33 @@
+0 0 2 2 2 2 2 2 2 0 0 0 0 0 0 2 2 2 2 2 2 2 0 0 0 0 0 0 0
+0 0 2 0 0 2 0 2 2 0 0 0 0 0 0 2 0 0 2 0 2 2 0 0 0 0 0 0 0
+0 0 2 0 0 2 0 2 2 0 0 0 0 0 0 2 0 0 2 0 2 2 2 2 2 2 2 2 0
+0 0 2 2 2 2 0 2 2 0 0 0 0 0 0 2 2 2 2 0 2 2 2 0 2 0 0 2 0
+0 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 2 2 0 2 0 0 2 0
+0 2 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 2 0 0 2 2 0 2 2 2 2 0
+0 2 2 2 2 2 2 2 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0
+0 2 2 0 2 0 0 2 0 0 0 0 2 0 0 0 2 0 0 2 0 2 2 0 0 0 0 0 0
+0 2 2 0 2 0 0 2 0 0 0 0 2 0 0 0 2 0 0 2 0 2 2 0 0 0 0 0 0
+0 2 2 0 2 2 2 2 0 0 0 0 2 0 0 0 2 2 2 2 0 2 2 0 0 0 0 0 0
+0 2 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 2 2 0 0 0 0 0 0 0 0 0 0
+0 2 2 0 2 2 2 2 0 0 0 0 2 0 0 0 2 2 2 2 0 2 2 0 0 0 0 0 0
+0 2 2 0 2 0 0 2 0 0 0 0 2 0 0 0 2 0 0 2 0 2 2 0 0 0 0 0 0
+0 2 2 0 2 0 0 2 0 0 0 0 2 0 0 0 2 0 0 2 0 2 2 0 0 0 0 0 0
+0 2 3 2 2 2 2 2 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0
+
+
+Exploration result with time limit
+time elapsed: 2.361504077911377
+percentage of map explored: 0.07065217391304347
+
+Exploration result with generator call limit
+total calls to generator: 293266
+percentage of map explored: 0.10326086956521739
+
+Exploration result with time limit
+time elapsed: 8.69887638092041
+percentage of map explored: 0.07608695652173914
+
+Exploration result with generator call limit
+total calls to generator: 516772
+percentage of map explored: 0.07065217391304347
+

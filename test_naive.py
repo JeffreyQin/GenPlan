@@ -665,9 +665,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    time_arr = [3.1072375774383545]
-    roll_arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    with open(f'modular_v2_results/map_{map_number}_naive.txt', 'a') as f:
+    time_arr = [2.357133388519287, 8.692197322845459, 17.63937020301819, 63.173462867736816, 68.82655572891235, 76.70810651779175, 140.44598150253296]
+    roll_arr = [289662, 510571, 808812, 2155946, 2361049, 2843827, 5258429]
+    with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
         np.savetxt(f, map_data, fmt='%d')
         f.write('\n\n')
 
@@ -681,7 +681,7 @@ if __name__ == "__main__":
         percentage_explored_simul_limit = compute_explored_from_path(map_data, agent_path_with_simul_limit)
         percentage_explored_time_limit = compute_explored_from_path(map_data, agent_path_with_time_limit)
     
-        with open(f'modular_v2_results/map_{map_number}_naive.txt', 'a') as f:
+        with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
 
             f.write("Exploration result with time limit\n")
             f.write(f'time elapsed: {time_elapsed}\n')
