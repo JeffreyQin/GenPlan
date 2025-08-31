@@ -1,0 +1,38 @@
+0 0 0 0 0 0 0
+0 1 1 1 1 1 0
+0 0 0 0 0 1 0
+0 0 0 0 0 1 0
+0 1 1 1 1 1 0
+0 0 0 0 0 1 1
+
+
+Exploration result with generator call limit
+agent_path:
+[(5, 6), (5, 5), (4, 5), (4, 4), (4, 4), (4, 4), (4, 4), (4, 5), (3, 5), (2, 5), (1, 5), (1, 4), (1, 4), (1, 4)]
+
+checkpoints:
+[4, 5, 6, 12, 13, 14]
+
+escape_rollout_checkpoints:
+[0, 0]
+
+pomcp_rollout_checkpoints:
+[0, 0]
+
+bridge_rollout_checkpoints:
+[31831, 92363]
+
+bridge_time_checkpoints:
+[0.3114492893218994, 0.5451309680938721]
+
+fragment_time_checkpoints:
+[5.1975250244140625e-05, 4.291534423828125e-05]
+
+escape_time_checkpoints:
+[6.9141387939453125e-06, 5.245208740234375e-06]
+
+observed amount:
+[0.7142857142857143, 0.7142857142857143, 0.7142857142857143, 1.0, 1.0, 1.0]
+
+TOTAL time across fragment+bridge+escape: 0.8566873073577881
+TOTAL rollouts across fragment+bridge+escape: 124194

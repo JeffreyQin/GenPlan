@@ -307,5 +307,5 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
 
     print(agent_path)
     print(checkpoints)
-    return agent_path, checkpoints
+    return agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints
 

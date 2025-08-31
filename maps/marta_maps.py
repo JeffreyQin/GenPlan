@@ -220,7 +220,6 @@ copies9 = [
     {"top left": (2,21), "reflect": True, "rotations": 0},
     {"top left": (6,1), "reflect": True, "rotations": 0},
     {"top left": (6,16), "reflect": False, "rotations": 0},
-
     {"top left": (11,1), "reflect": False, "rotations": 2},
     {"top left": (11,16), "reflect": True, "rotations": 2},
 ]

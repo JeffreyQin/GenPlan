@@ -1,5 +1,8 @@
 from modular_v2 import *
 import pygame
+from maps.marta_maps import *
+import sys
+import builtins
 """
 global_map = np.array([
     [0, 0, 0, 2, 0, 0, 0],
@@ -195,88 +198,134 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 
     pygame.quit()
 
+def how_much_observed(map_array, pos_indices, agent_path) -> list[float]:
+    """
+    Returns a list of exploration percentages at each checkpoint index.
+    """
+
+    rows, cols = map_array.shape
+    num_empty_spaces = sum(1 for x in range(rows) for y in range(cols)
+                           if map_array[x][y] != Cell.WALL.value)
+
+    generator = Generator(map_array)
+    generator.get_init_state(agent_path[0])
+
+    past_pos = agent_path[0]
+    path_index = 0
+    past_check_point = 0
+    checkpoint_index = 0
+
+    observed_ratios = []
+
+    while checkpoint_index < len(pos_indices):
+        # Simulate movement until reaching this checkpoint
+        steps = min(pos_indices[checkpoint_index] - past_check_point, len(agent_path) - 1 - path_index)
+
+        for _ in range(steps):
+            path_index += 1
+
+            if past_pos[0] > agent_path[path_index][0]:
+                action = 0
+            elif past_pos[0] < agent_path[path_index][0]:
+                action = 2
+            elif past_pos[1] > agent_path[path_index][1]:
+                action = 1
+            elif past_pos[1] < agent_path[path_index][1]:
+                action = 3
+            else:
+                action = -1  # stay put (shouldn't happen ideally)
+
+            generator.observed |= generator.get_observation(past_pos)
+
+            exit_found, new_agent_pos, new_obs, new_belief, reward = generator.generate(
+                (0, 0), past_pos, set(), set(), action
+            )
+            generator.observed |= generator.get_observation(past_pos)
+            generator.observed |= new_obs
+            past_pos = agent_path[path_index]
+
+        # After reaching checkpoint
+        generator.observed |= generator.get_observation(past_pos)
+        past_check_point = pos_indices[checkpoint_index]
+        checkpoint_index += 1
+
+        explored_ratio = len(generator.observed) / num_empty_spaces
+        observed_ratios.append(explored_ratio)
+
+    return observed_ratios
+
 
 # Test code
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python modular_v2_test.py <map_number>")
+        sys.exit(1)
+
+    map_number = sys.argv[1]
+    map_var = f"map{map_number}"
+    fragment_var = f"fragment{map_number}"
+    copies_var = f"copies{map_number}"
+
+    try:
+        map_data = builtins.globals()[map_var]
+        fragment_data = builtins.globals()[fragment_var]
+        copies_data = builtins.globals()[copies_var]
+    except KeyError as e:
+        print(f"Error: Could not find variable {e} for map {map_number}")
+        sys.exit(1)
     # Test run_modular function
-    print("Testing run_modular function...")
     
-    map = np.array(
-    [
-        [0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0],
-        [0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2, 0, 0, 2, 0],
-        [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 0, 0, 2, 0],
-        [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0],
-        [0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0],
-        [0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0],
-    ])
-
-    fragment = np.array([
-        [2, 2, 2, 2, 2, 2, 2],
-        [2, 0, 0, 2, 0, 2, 2],
-        [2, 0, 0, 2, 0, 2, 2],
-        [2, 2, 2, 2, 0, 2, 2],
-    ])
-
-    copies = [
-        {"top left": (0,2), "reflect": False, "rotations": 0},
-        {"top left": (0,15), "reflect": False, "rotations": 0},
-        {"top left": (2,21), "reflect": True, "rotations": 0},
-        {"top left": (6,1), "reflect": True, "rotations": 0},
-        {"top left": (6,16), "reflect": False, "rotations": 0},
-        {"top left": (11,1), "reflect": False, "rotations": 2},
-        # {"top left": (15,1), "reflect": True, "rotations": 0},
-        # {"top left": (15,7), "reflect": True, "rotations": 0},
-        {"top left": (11,16), "reflect": True, "rotations": 2},
-    ]
-    
-
-    map2 = np.array([
-    [0, 0, 0, 2, 0, 0, 0],
-    [2, 2, 0, 2, 2, 2, 0],
-    [0, 2, 0, 2, 0, 2, 0],
-    [2, 2, 2, 2, 2, 2, 2],
-    [0, 0, 2, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0, 0, 0],
-    [3, 2, 2, 0, 0, 0, 0],
-    ])
-
-    map_copy = map.copy()
-
-    fragment2 = np.array([
-        [0, 0, 0],
-        [2, 2, 0],
-        [0, 2, 0],
-    ])
-
-    copies2 = [
-        {"top left": (0,0), "reflect": False, "rotations": 0},
-        {"top left": (0,4), "reflect": False, "rotations": 0},
-
-    ]
-
-    
-    print(f"Fragment shape: {fragment.shape}")
-    print(f"Global map shape: {map.shape}")
-    print(f"Number of copies: {len(copies)}")
-    print(f"Initial agent position: (4, 4)")
-    
-    
+    map_copy = map_data.copy()
     # Test the modular planning
     print("\nStarting modular planning...")
-    agent_path, checkpoints = run_modular(map, fragment, copies)
+    agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints = run_modular(map_data, fragment_data, copies_data)
+    observed =  how_much_observed(map_copy, checkpoints, agent_path)
     print("Modular planning completed successfully!")
-    # agent_path = [(10, 1), (11, 1), (11, 1), (12, 1), (13, 1), (14, 1), (14, 2), (14, 3), (14, 4), (13, 4), (12, 4), (11, 4), (11, 5), (11, 6), (11, 7), (11, 7), (12, 7), (13, 7), (14, 7), (14, 6), (14, 6), (14, 5), (14, 4), (14, 3), (14, 2), (13, 2), (12, 2), (11, 2), (11, 1), (11, 1), (10, 1), (9, 1), (9, 1), (8, 1), (7, 1), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (7, 7), (8, 7), (9, 7), (9, 7), (9, 6), (9, 5), (9, 4), (8, 4), (7, 4), (6, 4), (6, 3), (6, 2), (6, 1), (6, 1), (5, 1), (4, 1), (4, 2), (3, 2), (3, 2), (2, 2), (1, 2), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 7), (1, 7), (2, 7), (3, 7), (3, 7), (4, 7), (4, 8), (4, 9), (4, 10), (4, 11), (5, 11), (5, 12), (5, 13), (5, 14), (5, 15), (5, 16), (6, 16), (6, 16), (6, 17), (6, 18), (6, 19), (6, 20), (6, 21), (6, 20), (6, 19), (7, 19), (8, 19), (9, 19), (9, 19), (8, 19), (7, 19), (6, 19), (6, 20), (6, 21), (6, 21), (5, 21), (5, 21), (4, 21), (3, 21), (2, 21), (2, 22), (2, 23), (2, 24), (3, 24), (4, 24), (5, 24), (5, 25), (5, 26), (5, 27), (5, 27), (5, 26), (5, 25), (5, 24), (4, 24), (3, 24), (2, 24), (2, 23), (2, 22), (3, 22), (4, 22), (4, 21), (5, 21), (5, 21), (4, 21), (3, 21), (3, 21), (2, 21), (1, 21), (0, 21), (0, 20), (0, 19), (0, 18), (1, 18), (2, 18), (3, 18), (3, 17), (3, 16), (3, 15), (3, 15), (3, 16), (3, 17), (3, 18), (2, 18), (1, 18), (0, 18), (0, 19), (0, 20), (1, 20), (2, 20), (3, 20), (3, 21), (3, 21), (3, 20), (2, 20), (3, 20), (3, 21), (4, 21), (5, 21), (6, 21), (6, 20), (6, 19), (7, 19), (8, 19), (9, 19), (9, 18), (10, 18), (11, 18), (11, 18), (11, 19), (12, 19), (13, 19), (14, 19), (14, 20), (14, 21), (14, 20), (14, 19), (14, 18), (14, 17), (14, 16), (14, 16)]
-    # checkpoints = [2, 15, 29, 32, 45, 55, 60, 69, 73, 86, 97, 103, 105, 118, 131, 134, 147, 160, 176, 188, 189]
+    
     print("\nTest completed!")
+
+    with open(f'modular_v2_results/map_{map_number}_naive.txt', 'a') as f:
+    # Save map
+        np.savetxt(f, map_data, fmt='%d')
+        f.write('\n\n')
+        f.write("Exploration result with generator call limit\n")
+
+        # Print out arrays
+        f.write("agent_path:\n")
+        f.write(f"{agent_path}\n\n")
+
+        f.write("checkpoints:\n")
+        f.write(f"{checkpoints}\n\n")
+
+        f.write("escape_rollout_checkpoints:\n")
+        f.write(f"{escape_rollout_checkpoints}\n\n")
+
+        f.write("pomcp_rollout_checkpoints:\n")
+        f.write(f"{pomcp_rollout_checkpoints}\n\n")
+
+        f.write("bridge_rollout_checkpoints:\n")
+        f.write(f"{bridge_rollout_checkpoints}\n\n")
+
+        f.write("bridge_time_checkpoints:\n")
+        f.write(f"{bridge_time_checkpoints}\n\n")
+
+        f.write("fragment_time_checkpoints:\n")
+        f.write(f"{fragment_time_checkpoints}\n\n")
+
+        f.write("escape_time_checkpoints:\n")
+        f.write(f"{escape_time_checkpoints}\n\n")
+
+        f.write("observed amount:\n")
+        f.write(f"{observed}\n\n")
+
+        # Totals
+        total_time = sum(fragment_time_checkpoints) + sum(bridge_time_checkpoints) + sum(escape_time_checkpoints)
+        total_rollouts = sum(escape_rollout_checkpoints) + sum(pomcp_rollout_checkpoints) + sum(bridge_rollout_checkpoints)
+
+        f.write(f"TOTAL time across fragment+bridge+escape: {total_time}\n")
+        f.write(f"TOTAL rollouts across fragment+bridge+escape: {total_rollouts}\n")
+
+
+    # Visualize
     visualize_after_checkpoint(map_copy, checkpoints, agent_path)
     
