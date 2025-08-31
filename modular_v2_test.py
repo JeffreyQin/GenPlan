@@ -318,12 +318,24 @@ if __name__ == "__main__":
         f.write("observed amount:\n")
         f.write(f"{observed}\n\n")
 
-        # Totals
-        total_time = sum(fragment_time_checkpoints) + sum(bridge_time_checkpoints) + sum(escape_time_checkpoints)
-        total_rollouts = sum(escape_rollout_checkpoints) + sum(pomcp_rollout_checkpoints) + sum(bridge_rollout_checkpoints)
+        rollout_arr = []
+        time_arr = []
+        for x in range(len(fragment_time_checkpoints)):
+            time_increment = (
+                fragment_time_checkpoints[x] +
+                bridge_time_checkpoints[x] +
+                escape_time_checkpoints[x]
+            )
 
-        f.write(f"TOTAL time across fragment+bridge+escape: {total_time}\n")
-        f.write(f"TOTAL rollouts across fragment+bridge+escape: {total_rollouts}\n")
+            # accumulate time (carry over last value if exists)
+            if time_arr:
+                time_arr.append(time_arr[-1] + time_increment)
+            else:
+                time_arr.append(time_increment)
+            rollout_arr.append(escape_rollout_checkpoints[x] + pomcp_rollout_checkpoints[x] + bridge_rollout_checkpoints[x])
+
+        f.write(f"time_arr = {time_arr}\n")
+        f.write(f"roll_arr = {rollout_arr}\n")
 
 
     # Visualize

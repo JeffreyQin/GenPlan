@@ -136,10 +136,10 @@ class POMCP():
         count = 0
         while count < self.num_simulations: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
             
-            # if simul_limit and globals.total_simul_actions >= globals.total_simul_limit:
-            #     break
-            # if time_limit and time.time() - globals.naive_start_time >= globals.naive_time_limit:
-            #     break
+            if simul_limit and globals.simul_rollout_count >= globals.total_simul_limit:
+                break
+            if time_limit and time.time() - globals.naive_start_time >= globals.naive_time_limit:
+                break
 
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
