@@ -181,10 +181,12 @@ def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tup
     generator = Generator(fragment)
     pomcp_algorithm = FragmentPOMCP(generator, depth=len(generator.rooms))
 
-    init_obs, init_belief = generator.get_init_state(agent_pos)
-    root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
-    subtrees[agent_pos] = root_node
+    if agent_pos not in subtrees.keys():
+        init_obs, init_belief = generator.get_init_state(agent_pos)
+        subtrees[agent_pos] = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
+    
+    root_node = subtrees[agent_pos]
 
     path = list()
     moves = list()
@@ -204,6 +206,27 @@ def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tup
         ctr += 1
 
     return path, moves, generator.observed
+
+def reuse_computed_policy(subtrees, agent_pos: tuple[int, int]):
+    
+    node_ptr = subtrees[agent_pos]
+    path = list()
+    
+    ## recursively compute next cell in the fragment by optimal action
+    ctr = 0
+    while ctr < globals.exploration_steps:
+        path.append(node_ptr.agent_pos)
+
+        if len(node_ptr.children) == 0:
+            break
+        else:
+            a_values: list[int] = [node_ptr.action_values[a] for a in range(4)]
+            a_optimal: int = a_values.index(max(a_values))
+            node_ptr = node_ptr.children[a_optimal]
+
+        ctr += 1
+
+    return path
 
 
 def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
@@ -245,7 +268,7 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
 
         remaining_copies = [copy for copy in copies if copy['top left'] not in explored_copies]
         bridge_path, bridge_moves, observation = run_bridge_search(map, agent_pos, fragment, remaining_copies)
-        update_map(map, observation)
+        #update_map(map, observation)
 
         bridge_end = time.time()
         bridge_time_checkpoints.append(bridge_end - bridge_start)
@@ -264,8 +287,14 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         # perform fragment search
         frag_start = time.time()
 
-        fragment_path, fragment_moves, observation = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
-        update_map(map, [coords_mapping[obs[0], obs[1]] for obs in observation])
+
+        if (base_r, base_c) not in fragment_subtrees.keys():
+            fragment_path, fragment_moves, observation = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
+        else:
+            fragment_path = reuse_computed_policy(fragment_subtrees, (base_r, base_c))
+        
+        #update_map(map, [coords_mapping[obs[0], obs[1]] for obs in observation])
+        
         frag_end = time.time()
         fragment_time_checkpoints.append(frag_end - frag_start)
 
@@ -292,7 +321,7 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         checkpoints.append(len(agent_path))
 
         escape_rollout_checkpoints.append(globals.escape_rollout_count)
-        pomcp_rollout_checkpoints.append(globals.simul_rollout_count)
+        pomcp_rollout_checkpoints.append(globals.fragment_rollout_count)
         bridge_rollout_checkpoints.append(globals.bridge_rollout_count)
         checkpoint_time = time.time()
         time_checkpoints.append(checkpoint_time - start_time)

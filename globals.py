@@ -17,3 +17,5 @@ escape_time = 0
 
 bridge_rollout_count = 0
 bridge_time = 0
+
+fragment_rollout_count = 0

@@ -672,6 +672,8 @@ if __name__ == "__main__":
         f.write('\n\n')
 
     for i in range(len(time_arr)):
+        globals.simul_rollout_count = 0
+        globals.naive_start_time = 0
         globals.naive_time_limit = time_arr[i]
         globals.total_simul_limit = roll_arr[i]
 

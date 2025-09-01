@@ -33,7 +33,7 @@ class FragmentPOMCP():
         """
         rollout function for exploring new actions/states
         """
-        #globals.total_rollout += 1
+        globals.fragment_rollout_count += 1
         if depth > self.depth_limit:
             return self.generator.get_penalty(node.obs)
         
@@ -52,6 +52,7 @@ class FragmentPOMCP():
         """
         simulate function for searching
         """
+        globals.fragment_rollout_count += 1
         node.num_visited += 1
 
         if depth > self.depth_limit:
