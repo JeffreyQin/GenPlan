@@ -3,7 +3,7 @@ import numpy as np
 import pygame
 from tree_builder import Cell, Action, Node
 from generator import Generator
-from pomcp import POMCP
+from legacy_code.pomcp import POMCP
 import networkx as nx
 import matplotlib.pyplot as plt
 

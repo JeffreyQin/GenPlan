@@ -4,7 +4,7 @@ import globals
 import time
 from tree_builder import Cell, Action, Node, Tree
 from generator import Generator
-from pomcp import POMCP
+from legacy_code.pomcp import POMCP
 from map_utils import segment_map, fragment_to_map_coords, get_observation
 
 

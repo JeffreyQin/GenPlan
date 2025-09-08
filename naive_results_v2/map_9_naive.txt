@@ -15,58 +15,9 @@
 0 2 3 2 2 2 2 2 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0
 
 
-Exploration result with time limit
-time elapsed: 2.361021041870117
-percentage of map explored: 0.07065217391304347
+Naive percentage explored at time checkpoints
+[0.005434782608695652, 0.005434782608695652, 0.016304347826086956, 0.03804347826086957, 0.043478260869565216, 0.14130434782608695, 0.14673913043478262]
 
-Exploration result with generator call limit
-total calls to generator: 293206
-percentage of map explored: 0.07173913043478261
+Naive percentage explored at rollout checkpoints
+[0.016304347826086956, 0.02717391304347826, 0.02717391304347826, 0.043478260869565216, 0.04891304347826087, 0.10326086956521739, 0.11413043478260869]
 
-Exploration result with time limit
-time elapsed: 8.69641399383545
-percentage of map explored: 0.07608695652173914
-
-Exploration result with generator call limit
-total calls to generator: 590316
-percentage of map explored: 0.07826086956521739,
-
-Exploration result with time limit
-time elapsed: 17.645902156829834
-percentage of map explored: 0.07608695652173914
-
-Exploration result with generator call limit
-total calls to generator: 1022589
-percentage of map explored: 0.08521739130434783
-
-Exploration result with time limit
-time elapsed: 63.17918300628662
-percentage of map explored: 0.11413043478260869
-
-Exploration result with generator call limit
-total calls to generator: 2257848
-percentage of map explored: 0.09130434782608696
-
-Exploration result with time limit
-time elapsed: 68.83024787902832
-percentage of map explored: 0.11413043478260869
-
-Exploration result with generator call limit
-total calls to generator: 5121207
-percentage of map explored: 0.09652173913043478
-
-Exploration result with time limit
-time elapsed: 76.71158289909363
-percentage of map explored: 0.11413043478260869
-
-Exploration result with generator call limit
-total calls to generator: 8496209
-percentage of map explored: 0.09913043478260870
-
-Exploration result with time limit
-time elapsed: 140.44953322410583
-percentage of map explored: 0.11413043478260869
-
-Exploration result with generator call limit
-total calls to generator: 12275611
-percentage of map explored: 0.09978260869565217

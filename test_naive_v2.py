@@ -4,7 +4,8 @@ from tree_builder import Tree
 import math
 import json
 from maps.marta_maps import *
-from modular_planner import *
+from modular_v2 import *
+
 import builtins
 
 def step_heuristic(tree, segmentation, node_id):
@@ -491,11 +492,14 @@ def visualize(map_array, agent_path):
                 sys.exit()
 
 
-def compute_explored_from_path(fragment: list[list[int, int]], agent_path: list[tuple[int, int]]):
+def compute_explored_from_path(fragment: list[list[int, int]], agent_path: list[tuple[int, int]], clip_indices):
     
     generator = Generator(fragment)
     generator.get_init_state(agent_path[0])
 
+    clip_ptr = 0
+    clipped_percent_observed = list()
+    
     for i in range(1, len(agent_path)):
         if (agent_path[i][0] > agent_path[i - 1][0]):
             action = 0
@@ -511,15 +515,23 @@ def compute_explored_from_path(fragment: list[list[int, int]], agent_path: list[
         _, new_agent_pos, _, _, _ = generator.generate((0,0), agent_path[i - 1], set(), set(), action)
         generator.observed.add(new_agent_pos)
 
+        if i == clip_indices[clip_ptr]:
+            curr_percent_observed = float(len(generator.observed)) / float(len(generator.rooms))
+            clipped_percent_observed.append(curr_percent_observed)
+            clip_ptr += 1
+            if clip_ptr >= len(clip_indices):
+                break
+
     final_observations = generator.get_observation(agent_path[-1])
     generator.observed = generator.observed.union(final_observations)
 
-    return float(len(generator.observed)) / float(len(generator.rooms))
+    return clipped_percent_observed
 
 
 
-def run_naive_pomcp_time(fragment: list[list[int, int]]):
+def run_naive_pomcp_time(fragment: list[list[int, int]], checkpoints):
 
+    print(checkpoints)
     # for experimentation
     # set max depth to number of empty rooms in fragment
 
@@ -536,23 +548,32 @@ def run_naive_pomcp_time(fragment: list[list[int, int]]):
             break
 
     generator = Generator(fragment)
-    pomcp_algorithm = POMCP(generator, discount = 0, depth=len(generator.rooms))
+    pomcp_algorithm = FragmentPOMCP(generator, depth=len(generator.rooms))
 
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
     globals.naive_start_time = time.time()
 
-    path = [agent_pos]
+    path = list()
+    moves = list()
     ctr = 0
-    while ctr <= len(generator.rooms):
 
-        if time.time() - globals.naive_start_time >= globals.naive_time_limit:
-            break
+    checkpoint_ptr = 0
+    clip_indices = list()
+
+    while ctr <= len(generator.rooms) * 10:
 
         path.append(root_node.agent_pos)
 
+        if time.time() - globals.naive_start_time >= checkpoints[checkpoint_ptr]:
+            clip_indices.append(ctr)
+            checkpoint_ptr += 1
+            if checkpoint_ptr >= len(checkpoints):
+                break
+
         best_action = pomcp_algorithm.search(root_node, simul_limit=False, time_limit=True)
+        moves.append(best_action)
 
         if len(root_node.children) == 0:
             break
@@ -561,9 +582,10 @@ def run_naive_pomcp_time(fragment: list[list[int, int]]):
 
         ctr += 1
 
-    return path, time.time() - globals.naive_start_time
+    return path, moves, clip_indices
 
-def run_naive_pomcp_simul(fragment: list[list[int, int]]):
+
+def run_naive_pomcp_simul(fragment: list[list[int, int]], checkpoints: list[float]):
 
     height, width = fragment.shape
 
@@ -578,21 +600,30 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
             break
 
     generator = Generator(fragment)
-    pomcp_algorithm = POMCP(generator, discount = 0, depth=len(generator.rooms))
+    pomcp_algorithm = FragmentPOMCP(generator, depth=len(generator.rooms))
 
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
 
-    path = [agent_pos]
+    path = list()
+    moves = list()
     ctr = 0
-    while ctr <= len(generator.rooms):
 
-        if globals.total_simul_actions >= globals.total_simul_limit:
-            break
+    checkpoint_ptr = 0
+    clip_indices = list()
+
+    while ctr <= len(generator.rooms):
 
         path.append(root_node.agent_pos)
 
+        if globals.total_simul_actions >= checkpoints[checkpoint_ptr]:
+            clip_indices.append(ctr)
+            checkpoint_ptr += 1
+            if checkpoint_ptr >= len(checkpoints):
+                break
+
         best_action = pomcp_algorithm.search(root_node, simul_limit = True, time_limit = False)
+        moves.append(best_action)
 
         if len(root_node.children) == 0:
             break
@@ -601,7 +632,7 @@ def run_naive_pomcp_simul(fragment: list[list[int, int]]):
 
         ctr += 1
 
-    return path, globals.total_simul_actions
+    return path, moves, clip_indices
 
 
 def run_naive_pomcp(fragment: list[list[int, int]]):
@@ -619,7 +650,7 @@ def run_naive_pomcp(fragment: list[list[int, int]]):
             break
 
     generator = Generator(fragment)
-    pomcp_algorithm = POMCP(generator, discount = 0, depth=len(generator.rooms))
+    pomcp_algorithm = FragmentPOMCP(generator, depth=len(generator.rooms))
 
     init_obs, init_belief = generator.get_init_state(agent_pos)
     root_node = Node(agent_pos, init_obs, init_belief, parent_id="", parent_a=0)
@@ -665,33 +696,31 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    time_arr = [2.357133388519287, 8.692197322845459, 17.63937020301819, 63.173462867736816, 68.82655572891235, 76.70810651779175, 140.44598150253296]
-    roll_arr = [289662, 510571, 808812, 2155946, 2361049, 2843827, 5258429]
+    time_arr = [3.4491984844207764, 17.28925848007202, 53.11710286140442, 166.4034388065338, 180.47618794441223, 477.7931456565857, 502.0025944709778]
+    roll_arr = [380670, 802650, 1235154, 2691106, 2970961, 5855015, 6300886]
+
     with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
         np.savetxt(f, map_data, fmt='%d')
         f.write('\n\n')
 
-    for i in range(len(time_arr)):
-        globals.simul_rollout_count = 0
-        globals.naive_start_time = 0
-        globals.naive_time_limit = time_arr[i]
-        globals.total_simul_limit = roll_arr[i]
+    globals.simul_rollout_count = 0
+    globals.naive_start_time = 0
 
-        agent_path_with_simul_limit, total_generator_calls = run_naive_pomcp_simul(map_data)
-        agent_path_with_time_limit, time_elapsed = run_naive_pomcp_time(map_data)
 
-        percentage_explored_simul_limit = compute_explored_from_path(map_data, agent_path_with_simul_limit)
-        percentage_explored_time_limit = compute_explored_from_path(map_data, agent_path_with_time_limit)
-    
-        with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
+    agent_path_with_simul_limit, agent_moves_with_simul_limit, simul_clip_idx  = run_naive_pomcp_simul(map_data, roll_arr)
+    agent_path_with_time_limit, agent_moves_with_time_elapsed, time_clip_idx = run_naive_pomcp_time(map_data, time_arr)
 
-            f.write("Exploration result with time limit\n")
-            f.write(f'time elapsed: {time_elapsed}\n')
-            f.write(f'percentage of map explored: {percentage_explored_time_limit}')
-            f.write('\n\n')
+    percentage_explored_simul_limit = compute_explored_from_path(map_data, agent_path_with_simul_limit, simul_clip_idx)
+    percentage_explored_time_limit = compute_explored_from_path(map_data, agent_path_with_time_limit, time_clip_idx)
 
-            f.write("Exploration result with generator call limit\n")
-            f.write(f'total calls to generator: {total_generator_calls}\n')
-            f.write(f'percentage of map explored: {percentage_explored_simul_limit}')
-            f.write('\n\n')
+    with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
+
+        f.write("Naive percentage explored at time checkpoints\n")
+        f.write(f'{percentage_explored_time_limit}')
+        f.write('\n\n')
+
+        f.write("Naive percentage explored at rollout checkpoints\n")
+        f.write(f'{percentage_explored_simul_limit}')
+        f.write('\n\n')
+
     visualize(map_data, agent_path_with_simul_limit)
