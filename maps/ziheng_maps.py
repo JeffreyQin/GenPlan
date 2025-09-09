@@ -127,11 +127,11 @@ copies_2 = [
     {"top left": (2,27), "reflect": False, "rotations": 0},
     {"top left": (2,36), "reflect": False, "rotations": 0},
 
-    {"top left": (18,0), "reflect": True, "rotations": 180},
-    {"top left": (18,9), "reflect": True, "rotations": 180},
-    {"top left": (18,18), "reflect": True, "rotations": 180},
-    {"top left": (18,27), "reflect": True, "rotations": 180},
-    {"top left": (18,36), "reflect": True, "rotations": 180}
+    {"top left": (18,0), "reflect": True, "rotations": 2},
+    {"top left": (18,9), "reflect": True, "rotations": 2},
+    {"top left": (18,18), "reflect": True, "rotations": 2},
+    {"top left": (18,27), "reflect": True, "rotations": 2},
+    {"top left": (18,36), "reflect": True, "rotations": 2}
 ]
 
 ## map 3 ##
