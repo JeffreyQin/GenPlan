@@ -1,6 +1,6 @@
 import numpy as np
 
-map = np.array([
+map_ = np.array([
     [0, 0, 0, 0, 0, 2, 0, 0, 0],
     [0, 2, 2, 2, 2, 2, 2, 2, 0],
     [0, 2, 0, 0, 0, 2, 0, 2, 0],
@@ -12,13 +12,13 @@ map = np.array([
     [0, 0, 0, 0, 2, 0, 0, 0, 0],
 ])
 
-fragment = np.array([
+fragment_ = np.array([
     [0, 2, 0],
     [2, 2, 2],
     [0, 2, 0],
 ])
 
-map2 = np.array([
+map_2 = np.array([
     [0, 0, 0, 2, 0, 0, 0],
     [2, 2, 0, 2, 2, 2, 0],
     [0, 2, 0, 2, 0, 2, 0],
@@ -28,20 +28,20 @@ map2 = np.array([
     [3, 2, 2, 0, 0, 2, 0],
 ])
 
-fragment2 = np.array([
+fragment_2 = np.array([
     [0, 0, 0],
     [2, 2, 0],
     [0, 2, 0],
 ])
 
-copies2 = [
+copies_2 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,4), "reflect": False, "rotations": 0},
     {"top left": (4,4), "reflect": False, "rotations": 0}
 
 ]
 
-map3 = np.array([
+map_3 = np.array([
         [0, 0, 0, 0, 0, 0, 0],
         [0, 2, 2, 2, 2, 2, 0],
         [0, 0, 0, 0, 0, 2, 0],
@@ -50,18 +50,18 @@ map3 = np.array([
         [0, 0, 0, 0, 0, 2, 3]
     ])
 
-fragment3 = np.array([
+fragment_3 = np.array([
         [0, 0, 0, 0, 0],
         [0, 2, 2, 2, 2],
         [0, 0, 0, 0, 0]
     ])
 
-copies3 = [
+copies_3 = [
         {"top left": (0,0), "reflect": False, "rotations": 0},
         {"top left": (3,0), "reflect": False, "rotations": 0}
     ]
 
-map4 = np.array([
+map_4 = np.array([
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     [2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2],
     [2, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 2],
@@ -74,21 +74,21 @@ map4 = np.array([
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
 ])
 
-fragment4 = np.array([
+fragment_4 = np.array([
     [2, 2, 2, 2, 2],
     [2, 0, 0, 0, 0],
     [2, 0, 2, 2, 0],
     [2, 0, 0, 2, 0],
 ])
 
-copies4 = [
+copies_4 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,6), "reflect": True, "rotations": 0},
     {"top left": (6,1), "reflect": False, "rotations": 2},
     {"top left": (6,7), "reflect": False, "rotations": 2}
 ]
 
-map5 = np.array([
+map_5 = np.array([
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     [2, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2],
     [2, 0, 2, 2, 0, 2, 2, 2, 0, 2, 2, 0, 2],
@@ -102,7 +102,7 @@ map5 = np.array([
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
 ])
 
-fragment5 = np.array([
+fragment_5 = np.array([
     [2, 2, 2, 2, 2],
     [2, 0, 0, 0, 0],
     [2, 0, 2, 2, 0],
@@ -110,14 +110,14 @@ fragment5 = np.array([
     [2, 2, 2, 2, 2],
 ])
 
-copies5 = [
+copies_5 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,8), "reflect": True, "rotations": 0},
     {"top left": (6,0), "reflect": True, "rotations": 2},
     {"top left": (6,8), "reflect": False, "rotations": 2}
 ]
 
-map6 = np.array(
+map_6 = np.array(
     [[2, 0, 0, 0, 0, 2, 0, 2],
     [2, 2, 2, 2, 2, 2, 2, 2],
     [2, 0, 0, 0, 0, 0, 0, 0],
@@ -129,19 +129,19 @@ map6 = np.array(
     [3, 0, 0, 0, 0, 0, 0, 0]]
 )
 
-fragment6 = np.array([
+fragment_6 = np.array([
     [0, 0, 0, 0, 2, 0, 2],
     [2, 2, 2, 2, 2, 2, 2],
     [0, 0, 0, 0, 0, 0, 0],
 ])
 
-copies6 = [
+copies_6 = [
     {"top left": (0,1), "reflect": False, "rotations": 0},
     {"top left": (3,1), "reflect": False, "rotations": 0},
     {"top left": (6,1), "reflect": False, "rotations": 0},
 ]
 
-map7 = np.array(
+map_7 = np.array(
 [[2, 2, 0, 0, 2, 2, 0, 0, 0],
  [2, 2, 0, 0, 2, 2, 0, 0, 0],
  [0, 2, 0, 0, 0, 2, 0, 0, 0],
@@ -151,20 +151,20 @@ map7 = np.array(
  [0, 0, 0, 2, 2, 0, 0, 2, 2]]
 )
 
-fragment7 = np.array([
+fragment_7 = np.array([
  [2, 2, 0],
  [2, 2, 0],
  [0, 2, 0],
 ])
 
-copies7 = [
+copies_7 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,4), "reflect": False, "rotations": 0},
     {"top left": (4,2), "reflect": False, "rotations": 2},
     {"top left": (4,6), "reflect": False, "rotations": 2},
 ]
 
-map8 = np.array(
+map_8 = np.array(
 [[0, 2, 2, 0, 2, 2, 0, 2, 2, 0],
  [0, 2, 2, 0, 2, 2, 0, 2, 2, 0],
  [0, 0, 2, 0, 0, 2, 0, 0, 2, 0],
@@ -174,13 +174,13 @@ map8 = np.array(
  [0, 0, 0, 2, 2, 0, 2, 2, 0, 0]]
 )
 
-fragment8 = np.array([
+fragment_8 = np.array([
  [2, 2, 0],
  [2, 2, 0],
  [0, 2, 0],
 ])
 
-copies8 = [
+copies_8 = [
     {"top left": (0,1), "reflect": False, "rotations": 0},
     {"top left": (0,4), "reflect": False, "rotations": 0},
     {"top left": (0,7), "reflect": False, "rotations": 2},
@@ -188,7 +188,7 @@ copies8 = [
     {"top left": (4,6), "reflect": True, "rotations": 2},
 ]
 
-map9 = np.array(
+map_9 = np.array(
 [[0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 2, 0, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0],
@@ -207,14 +207,14 @@ map9 = np.array(
 ]
 )
 
-fragment9 = np.array([
+fragment_9 = np.array([
     [2, 2, 2, 2, 2, 2, 2],
     [2, 0, 0, 2, 0, 2, 2],
     [2, 0, 0, 2, 0, 2, 2],
     [2, 2, 2, 2, 0, 2, 2],
 ])
 
-copies9 = [
+copies_9 = [
     {"top left": (0,2), "reflect": False, "rotations": 0},
     {"top left": (0,15), "reflect": False, "rotations": 0},
     {"top left": (2,21), "reflect": True, "rotations": 0},
@@ -225,7 +225,7 @@ copies9 = [
 ]
 
 
-map10 = np.array(
+map_10 = np.array(
 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -273,7 +273,7 @@ map10 = np.array(
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 )
 
-fragment10 = np.array([
+fragment_10 = np.array([
     [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
     [0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0],
     [0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0],
@@ -282,7 +282,7 @@ fragment10 = np.array([
     [0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0],
     [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
 ])
-copies10 = [
+copies_10 = [
     {"top left": (11,20), "reflect": False, "rotations": 0},
     {"top left": (19,20), "reflect": False, "rotations": 0},
     {"top left": (27,20), "reflect": False, "rotations": 0},
@@ -293,7 +293,7 @@ copies10 = [
     {"top left": (34,12), "reflect": False, "rotations": 1},
 ]
 
-map11 = np.array(
+map_11 = np.array(
 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
@@ -319,7 +319,7 @@ map11 = np.array(
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 )
 
-fragment11 = np.array([
+fragment_11 = np.array([
     [2, 2, 2, 2, 2, 2, 2, 0, 0, 0],
     [2, 2, 0, 2, 2, 2, 2, 0, 0, 0],
     [2, 0, 0, 2, 2, 2, 2, 0, 0, 0],
@@ -332,7 +332,7 @@ fragment11 = np.array([
     [0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
 ])
 
-copies11 = [
+copies_11 = [
     {"top left": (1,5), "reflect": False, "rotations": 0},
     {"top left": (1,17), "reflect": True, "rotations": 0},
 
@@ -347,7 +347,7 @@ copies11 = [
 ]
 
 
-map12 =np.array(
+map_12 =np.array(
 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  [0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
@@ -400,7 +400,7 @@ map12 =np.array(
  [0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0]]
 )
 
-fragment12 = np.array([
+fragment_12 = np.array([
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
@@ -408,7 +408,7 @@ fragment12 = np.array([
     [0, 0, 0, 0, 0]
 ])
 
-copies12 = [
+copies_12 = [
     {"top left": (0,15), "reflect": False, "rotations": 0},
     {"top left": (3,4), "reflect": False, "rotations": 0},
 
