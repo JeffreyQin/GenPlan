@@ -4,6 +4,7 @@ from tree_builder import Tree
 import math
 import json
 from maps.marta_maps import *
+from maps.ziheng_maps import *
 from modular_v2 import *
 
 import builtins
@@ -683,9 +684,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     map_number = sys.argv[1]
-    map_var = f"map{map_number}"
-    fragment_var = f"fragment{map_number}"
-    copies_var = f"copies{map_number}"
+    map_var = f"map_{map_number}"
+    fragment_var = f"fragment_{map_number}"
+    copies_var = f"copies_{map_number}"
 
     try:
         map_data = builtins.globals()[map_var]
@@ -696,10 +697,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    time_arr = [3.4491984844207764, 17.28925848007202, 53.11710286140442, 166.4034388065338, 180.47618794441223, 477.7931456565857, 502.0025944709778]
-    roll_arr = [380670, 802650, 1235154, 2691106, 2970961, 5855015, 6300886]
+    time_arr = [97.86574101448059, 172.34385871887207, 366.73656487464905, 585.5029170513153, 809.6328110694885, 927.0303492546082]
+    roll_arr = [8374197, 16148040, 28735449, 43380491, 56623607, 61360702]
 
-    with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
+    with open(f'ziheng_v2_results/map_{map_number}_naive.txt', 'a') as f:
         np.savetxt(f, map_data, fmt='%d')
         f.write('\n\n')
 
@@ -713,7 +714,7 @@ if __name__ == "__main__":
     percentage_explored_simul_limit = compute_explored_from_path(map_data, agent_path_with_simul_limit, simul_clip_idx)
     percentage_explored_time_limit = compute_explored_from_path(map_data, agent_path_with_time_limit, time_clip_idx)
 
-    with open(f'naive_results_v2/map_{map_number}_naive.txt', 'a') as f:
+    with open(f'ziheng_v2_results/map_{map_number}_naive.txt', 'a') as f:
 
         f.write("Naive percentage explored at time checkpoints\n")
         f.write(f'{percentage_explored_time_limit}')
