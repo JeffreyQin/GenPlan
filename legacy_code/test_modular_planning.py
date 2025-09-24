@@ -150,7 +150,7 @@ def test_single_iteration():
 
 
 
-from modular_planner import modular_planning, fragment_planning
+from legacy_code.modular_planner import modular_planning, fragment_planning
 
 map = np.array([
     [0, 0, 0, 0, 0, 2, 0, 0, 0],
@@ -719,7 +719,7 @@ def visualize(map_array, agent_path):
                 sys.exit()
 
 
-from modular_planner import *
+from legacy_code.modular_planner import *
 
 
 def visualize_after_checkpoint(map_array, pos_indices, agent_path):

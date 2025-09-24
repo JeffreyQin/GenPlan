@@ -3,7 +3,7 @@ import numpy as np
 from tree_builder import Tree
 import math
 import json
-from modular_planner import modular_planning, fragment_planning
+from legacy_code.modular_planner import modular_planning, fragment_planning
 import pygame
 import sys
 from maps.marta_maps import *
@@ -191,7 +191,7 @@ def visualize(map_array, agent_path):
                 sys.exit()
 
 
-from modular_planner import *
+from legacy_code.modular_planner import *
 
 
 def visualize_after_checkpoint(map_array, pos_indices, agent_path):

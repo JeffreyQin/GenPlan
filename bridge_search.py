@@ -7,6 +7,9 @@ from tree_builder import BridgeNode, Cell, Action
 from generator import BridgeGenerator
 
 class BridgePOMCP():
+    """
+    POMCP algorithm for between-fragment planning
+    """
 
     def __init__(self, generator, discount = 1.0, exploration = 5.0, epsilon = 0.001, depth = 10, num_simulations = 1000):
         self.generator: BridgeGenerator = generator
@@ -21,7 +24,9 @@ class BridgePOMCP():
 
 
     def rollout(self, node: BridgeNode, state: tuple[int, int], depth: int) -> float:
-
+        """
+        Rollout function for exploring new actions/states
+        """
         globals.bridge_rollout_count += 1
 
         if depth > self.depth_limit:
@@ -43,7 +48,9 @@ class BridgePOMCP():
     
 
     def simulate(self, state: tuple[int, int], node: BridgeNode, depth: int) -> float:
-
+        """
+        Simulate function
+        """
         globals.bridge_rollout_count += 1
         node.num_visited += 1
 
@@ -88,9 +95,7 @@ class BridgePOMCP():
             return reward
     
     def UCB1(self, node: BridgeNode, action: int, depth_diff: int):
-        """
-        UCB1 formula for action selection
-        """
+
         if node.children[action].num_visited == 0:  # unvisited action
             return float('inf')
         else:
@@ -100,8 +105,9 @@ class BridgePOMCP():
     
     def best_action_index(self, root: BridgeNode) -> int:
         """
-        Find the action with the largest value
+        Compute optimal action
         """
+
         # prevent optimal action to be "explore" if it's not available
         if root.children[4] is None:
             root.action_values[4] = float('-inf')
@@ -111,7 +117,10 @@ class BridgePOMCP():
 
 
     def search(self, root: BridgeNode) -> int:
-
+        """
+        Perform rollouts and find optimal action
+        """
+        
         if len(root.belief) == 0:  # meaning we've seen all empty rooms
             return
 

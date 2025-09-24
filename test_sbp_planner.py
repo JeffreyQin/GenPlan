@@ -1,31 +1,8 @@
-from modular_v2 import *
+from structure_based_planner import *
 import pygame
-from maps.marta_maps import *
+from maps import *
 import sys
 import builtins
-"""
-global_map = np.array([
-    [0, 0, 0, 2, 0, 0, 0],
-    [2, 2, 0, 2, 2, 2, 0],
-    [0, 2, 0, 2, 0, 2, 0],
-    [2, 2, 2, 2, 2, 2, 2],
-    [0, 0, 2, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0, 0, 0],
-    [3, 2, 2, 0, 0, 0, 0],
-])
-fragment = np.array([
-        [0, 0, 0],
-        [2, 2, 0],
-        [0, 2, 0],
-])
-
-agent_pos = (6, 0)
-
-
-import collections
-path = run_fragment_search(dict(), global_map, agent_pos)
-print(path)
-"""
 
 # Constants
 TILE_SIZE = 30
@@ -40,11 +17,12 @@ COLOR_AGENT = (255, 0, 0)
 COLOR_GOAL = (0, 255, 0)
 COLOR_TRAIL = (100, 100, 255)
 
-# Arrow drawing helper – only draws the head when width=0
-
 
 def draw_arrow(surface, start, end, color):
-    """Draw just the arrowhead pointing from start → end."""
+    """
+    Draw just the arrowhead pointing from start to end
+    """
+
     dx, dy = end[0] - start[0], end[1] - start[1]
     base_ang = math.atan2(dy, dx)
     head_len = 12
@@ -59,7 +37,12 @@ def draw_arrow(surface, start, end, color):
 
     pygame.draw.polygon(surface, color, (left_pt, right_pt, end))
 
+
 def visualize_after_checkpoint(map_array, pos_indices, agent_path):
+    """
+    Visualization tool for agent path, clipped at each checkpoint
+    """
+
     pygame.init()
     rows, cols = map_array.shape
     num_empty_spaces = 0
@@ -76,7 +59,6 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
     generator.get_init_state(agent_path[0])
     pygame.display.set_caption("Agent Full Path")
 
-    # Font for annotations
     font = pygame.font.SysFont(None, 16)
 
     running = True
@@ -122,13 +104,8 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
 
                     generator.observed = generator.observed.union(generator.get_observation(past_pos))
                     past_check_point = pos_indices[checkpoint_index]
-                    checkpoint_index += 1
-                    #observed.update(new_obs)
-                    #print(observed)
-                    #print(generator.observed)
-                            
+                    checkpoint_index += 1          
 
-        # Drawing routine
         map_surf = pygame.Surface(screen.get_size())
         for i in range(rows):
             for j in range(cols):
@@ -156,11 +133,11 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
             draw_arrow(trail_surf, px_pts[-2], px_pts[-1], (255, 0, 0))
 
         # 3) Annotations
-        corner_used = {}  # (i,j) → 'top-right' or 'bottom-left'
+        corner_used = {}  # (i,j) to 'top-right' or 'bottom-left'
 
         for idx, (i, j) in enumerate(past_path):
             pos = (i, j)
-            text = font.render(str(idx), True, (0, 0, 0))  # black text
+            text = font.render(str(idx), True, (0, 0, 0))
             text_rect = text.get_rect()
 
             top_right = (j * TILE_SIZE + TILE_SIZE - 2 - text_rect.width, i * TILE_SIZE + 2)
@@ -197,6 +174,7 @@ def visualize_after_checkpoint(map_array, pos_indices, agent_path):
         clock.tick(30)
 
     pygame.quit()
+
 
 def how_much_observed(map_array, pos_indices, agent_path) -> list[float]:
     """
@@ -255,7 +233,6 @@ def how_much_observed(map_array, pos_indices, agent_path) -> list[float]:
     return observed_ratios
 
 
-# Test code
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python modular_v2_test.py <map_number>")
@@ -273,14 +250,14 @@ if __name__ == "__main__":
     except KeyError as e:
         print(f"Error: Could not find variable {e} for map {map_number}")
         sys.exit(1)
-    # Test run_modular function
+    # Test run_sbp_planner function
     
     map_copy = map_data.copy()
-    # Test the modular planning
-    print("\nStarting modular planning...")
+    # Test SBP planner
+    print("\nStarting SDB planner...")
     agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints = run_modular(map_data, fragment_data, copies_data)
     observed =  how_much_observed(map_copy, checkpoints, agent_path)
-    print("Modular planning completed successfully!")
+    print("SBP planning completed successfully!")
     
     print("\nTest completed!")
 

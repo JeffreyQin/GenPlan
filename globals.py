@@ -1,3 +1,7 @@
+"""
+global constants used for experiments and benchmarking purposes
+"""
+
 total_rollout = 0
 exploration_steps = 100
 num_simulations = 200

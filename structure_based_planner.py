@@ -19,11 +19,15 @@ COLOR_GOAL = (0, 255, 0)
 COLOR_FLOOR = (255, 255, 255)
 COLOR_AGENT = (255, 0, 0)
 
+
 def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray, global_coords: dict, segmentation: dict) -> dict[tuple[int, int], float]:
     """
-    compute penalty for each exit of fragment
-    penalty is a maximally simplistic approximation of subsequent work required to reach other unexplored fragments
+    compute penalty value for each exit of the current fragment 
+    the penalty value is a maximally simplistic approximation of subsequent work required to reach other unexplored fragments
+
+    used by escape planner 
     """
+
     height, width = fragment.shape
     map_height, map_width = map.shape
     exit_penalty = dict()
@@ -93,7 +97,8 @@ def compute_exit_penalty(fragment: np.ndarray, copy: dict, map: np.ndarray, glob
 
 def run_escape_search(fragment: np.ndarray, exit_penalty: dict, agent_pos: tuple[int, int]):
     """
-    find optimal escape path from current explored fragment
+    find optimal escape path from the current explored fragment
+    (Monte Carto Tree Search)
     """
     
     # Create MCTS solver with computed penalties
@@ -126,7 +131,9 @@ def run_escape_search(fragment: np.ndarray, exit_penalty: dict, agent_pos: tuple
 
 def compute_fragment_utility(map: np.ndarray, fragment: np.ndarray, copy: dict):
     """
-    compute the utility to explore current fragment
+    compute fragment utility, a simplistic approximation of rewards for exploring the fragment
+    
+    used by between-fragment planner to decide whether or not to explore fragment
     """
     return np.sum(fragment == Cell.UNOBSERVED.value)
 
@@ -134,7 +141,8 @@ def compute_fragment_utility(map: np.ndarray, fragment: np.ndarray, copy: dict):
 
 def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.ndarray, copies: list[dict]):
     """
-    return optimal path to next unexplored fragment
+    find optimal path to the next unexplored fragment and to explore non-fragment area
+    (POMCP)
     """
     
     generator = BridgeGenerator(map, fragment, copies)
@@ -167,9 +175,12 @@ def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.
 
 
 def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
+    """
+    find optimal path to explore the current fragment
+    (POMCP)
 
-    # for experimentation
-    # set max depth to number of empty rooms in fragment
+    used if the current fragment has never been explored from the current entrance
+    """
 
     num_fragment_rooms = 0
     height, width = fragment.shape
@@ -208,7 +219,12 @@ def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tup
     return path, moves, generator.observed
 
 def reuse_computed_policy(subtrees, agent_pos: tuple[int, int]):
-    
+    """
+    reuse pre-computed policy to explore the current fragment
+
+    used if the current fragment has been previously explored from the current entrance
+    """
+
     node_ptr = subtrees[agent_pos]
     path = list()
     
@@ -229,7 +245,12 @@ def reuse_computed_policy(subtrees, agent_pos: tuple[int, int]):
     return path
 
 
-def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
+def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
+    """
+    run structure-based planner (SBP)
+
+    controls transitioning between fragment planning, between-fragment planning, and fragment escape planning
+    """
 
     start_time = time.time()
     agent_path = []
@@ -292,9 +313,7 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
             fragment_path, fragment_moves, observation = run_fragment_search(fragment_subtrees, fragment, (base_r, base_c))
         else:
             fragment_path = reuse_computed_policy(fragment_subtrees, (base_r, base_c))
-        
-        #update_map(map, [coords_mapping[obs[0], obs[1]] for obs in observation])
-        
+
         frag_end = time.time()
         fragment_time_checkpoints.append(frag_end - frag_start)
 
@@ -334,7 +353,6 @@ def run_modular(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         copies.remove(copy)
         segmentation = segment_map(fragment, copies)
 
-    print(agent_path)
-    print(checkpoints)
+
     return agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints
 

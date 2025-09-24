@@ -5,8 +5,10 @@ from tree_builder import Node
 from generator import Generator 
 import time
 
-
 class FragmentPOMCP():
+    """
+    POMCP algorithm for in-fragment planning
+    """
 
     def __init__(self, generator, discount = 1.0, exploration = 5.0, epsilon = 0.001, depth = 10, num_simulations = 1000): #set depth to high
         """
@@ -31,7 +33,7 @@ class FragmentPOMCP():
 
     def rollout(self, node: Node, state: tuple[int, int], depth: int)->float:
         """
-        rollout function for exploring new actions/states
+        Rollout function for exploring new actions/states
         """
         globals.fragment_rollout_count += 1
         if depth > self.depth_limit:
@@ -50,8 +52,9 @@ class FragmentPOMCP():
 
     def simulate(self, state: tuple[int, int], node: Node, depth: int) -> float:
         """
-        simulate function for searching
+        Simulation function
         """
+
         globals.fragment_rollout_count += 1
         node.num_visited += 1
 
@@ -99,7 +102,7 @@ class FragmentPOMCP():
 
     def best_action_index(self, root: Node) -> int:
         """
-        Small helper function to find the action with the largest value given the node
+        Compute optimal action
         """
 
         best_action:int = root.action_values.index(max(root.action_values))
@@ -108,13 +111,13 @@ class FragmentPOMCP():
 
     def search(self, root: Node, simul_limit=False, time_limit = False) -> int:
         """
-        Search will take a node and return an integer corresponding to the best action
+        Perform simulations/rollouts and return optimal action
         """
 
         if(len(root.belief) == 0): #meaing we've seen all empty rooms
             return
         count = 0
-        while count < self.num_simulations: #REMEMBER TO ASK COLE/MARTA OR JEFF ABOUT THIS #set C to a certain amount
+        while count < self.num_simulations: 
 
             state: tuple[int, int] = random.choice(list(root.belief))
             self.simulate(state, root, 0)
@@ -123,11 +126,3 @@ class FragmentPOMCP():
         best_action:int = self.best_action_index(root)
         
         return best_action
-
-# horizon = depth of a search
-# # of rollouts = # of times search is called
-
-# debug simple rollouts to make sure that it works (Rollouts work)
-# test different exploration rates (super lost)
-# check to see if current node is preserved (FIGURED THIS OUT)
-# this weeks tasks

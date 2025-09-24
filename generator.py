@@ -6,6 +6,9 @@ from map_utils import *
 
 
 class BridgeGenerator():
+    """
+    POMCP blackbox generator for between-fragment planner
+    """
 
     def __init__(self, map, fragment, copies):
 
@@ -32,6 +35,10 @@ class BridgeGenerator():
 
 
     def get_fragment_penalty(self, pos: tuple[int, int], curr_obs: set) -> float:
+        """
+        returns estimated cost of fragment exploration
+        computed as the average of pre-exploration and post-exploration stepwise penalty, accumulated across steps
+        """
 
         init_step_penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
         final_step_penalty = (float(len(curr_obs) + self.num_frag_rooms) / float(len(self.rooms))) - 1.0
@@ -41,7 +48,10 @@ class BridgeGenerator():
 
     
     def get_penalty(self, curr_obs: set[tuple[int, int]]):
-        
+        """
+        returns stepwise penalty
+        """
+
         penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
         return penalty
     
@@ -57,10 +67,12 @@ class BridgeGenerator():
         return (base_r == 0 or base_r == self.frag_dims[0] - 1 or
                 base_c == 0 or base_c == self.frag_dims[1] - 1)
 
-
     
     def get_observation(self, pos: tuple[int, int]):
-
+        """
+        returns set of observable cells from current position
+        """
+        
         observations = set()
         observations.add(pos)
         (r, c) = pos
@@ -167,7 +179,6 @@ class BridgeGenerator():
 
 
     def generate(self, exit_state: tuple[int, int], agent_pos: tuple[int, int], curr_obs: set[tuple[int, int]], curr_belief: set[tuple[int, int]], action: int):
-
         """
         Generate next state based on action
         """
@@ -212,6 +223,9 @@ class BridgeGenerator():
 
 
 class Generator():
+    """
+    POMCP blackbox generator for in-fragment planner
+    """
 
     def __init__(self, map, agent_r = 5):
         
@@ -229,6 +243,9 @@ class Generator():
 
     
     def get_observation(self, pos: tuple[int, int]):
+        """
+        returns set of observable cells from current position
+        """
 
         observations = set()
         observations.add(pos)
@@ -384,6 +401,9 @@ class Generator():
             
 
     def get_penalty(self, curr_obs: set[tuple[int, int]]):
-        
+        """
+        returns stepwise penalty
+        """
+
         penalty = (float(len(curr_obs) / float(len(self.rooms)))) - 1.0
         return penalty

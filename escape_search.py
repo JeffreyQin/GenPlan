@@ -54,7 +54,7 @@ class EscapeMCTS():
 
     def UCB1(self, node: EscapeNode, action: int, depth_diff: int) -> float:
         """
-        Action selection using exploration-exploitation tradeoff
+        Action selection using UCB1
         """
         if node.children[action].num_visited == 0:
             return float('inf')
@@ -65,6 +65,10 @@ class EscapeMCTS():
         
     
     def rollout(self, node: EscapeNode, depth: int) -> float:
+        """
+        Rollout function for exploring new actions/states
+        """
+
         globals.escape_rollout_count += 1
         if depth > self.depth_limit:
             return self.get_penalty(node.agent_pos)
@@ -81,6 +85,10 @@ class EscapeMCTS():
 
 
     def simulate(self, node: EscapeNode, depth: int) -> float:
+        """
+        Simulate function
+        """
+
         globals.escape_rollout_count += 1
         node.num_visited += 1
 
@@ -112,7 +120,9 @@ class EscapeMCTS():
         return penalty
 
     def search(self, root: EscapeNode) -> int:
-
+        """
+        Perform rollouts and get optimal action
+        """
         simul_count = 0
         while simul_count < self.num_simulations:
             self.simulate(root, 0)

@@ -10,6 +10,7 @@ class Cell(Enum):
     EXIT = 4
     ENTRANCE = 5
 
+
 class Action(Enum):
     UP = 0
     RIGHT = 1
@@ -78,7 +79,6 @@ class Tree():
         segmentation: mapping of each coordinate (r, c) to its corresponding fragment copy
         copies_explored: set of already explored fragment copies - will be ignored by planning
         subtrees: already constructed subtrees
-        
         """
 
         (self.height, self.width) = map.shape
