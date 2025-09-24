@@ -571,6 +571,7 @@ copies_9_a = [
     {"top left": (12,31), "reflect": False, "rotations": 0},
     {"top left": (12,37), "reflect": False, "rotations": 0},
 ]
+
 fragment_9_b = np.array (
 [
     [2,2,2,2,2,2,2],
