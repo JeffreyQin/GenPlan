@@ -1,1 +1,1 @@
-# Fragment-based-POMCP
+# Planning with Generative Cognitive Maps
