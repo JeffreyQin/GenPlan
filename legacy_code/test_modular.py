@@ -6,7 +6,7 @@ import json
 from legacy_code.modular_planner import modular_planning, fragment_planning
 import pygame
 import sys
-from maps.marta_maps import *
+from maps.map_set1 import *
 
 
 

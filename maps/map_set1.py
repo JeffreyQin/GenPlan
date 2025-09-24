@@ -1,6 +1,6 @@
 import numpy as np
 
-map_ = np.array([
+map_1 = np.array([
     [0, 0, 0, 0, 0, 2, 0, 0, 0],
     [0, 2, 2, 2, 2, 2, 2, 2, 0],
     [0, 2, 0, 0, 0, 2, 0, 2, 0],
@@ -12,7 +12,7 @@ map_ = np.array([
     [0, 0, 0, 0, 2, 0, 0, 0, 0],
 ])
 
-fragment_ = np.array([
+fragment_1 = np.array([
     [0, 2, 0],
     [2, 2, 2],
     [0, 2, 0],
