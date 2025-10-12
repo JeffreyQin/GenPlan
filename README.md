@@ -36,7 +36,7 @@ To run Naive-POMCP (for comparison purposes), run
 python test_naive_planner.py
 ```
 
-On completion, a window will pop up to visualize the path the agent has taken, and can be controlled by pressing the "enter" key.
+On completion, a window will pop up to visualize the path the agent has taken, and can be controlled by pressing the "enter" key. By default, a measurement report will be generated at the end for both Gen-POMCP and Naive-POMCP in terms of time and compute. You may customize the location of the report by modifying the bottom of ```test_sbp_planner.py``` and ```test_naive_planner.py```.
 
 
 
