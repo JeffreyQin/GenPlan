@@ -8,7 +8,7 @@ from maps import input_maps
 import traceback
 import os, re
 from dotenv import load_dotenv
-
+from llm_api import get_openai_gpt_completions, get_google_gemini_completions, get_anthropic_claude_completions, get_groq_completions
 class MapCompletionAgent:
  
     def __init__(self):
@@ -38,7 +38,11 @@ class MapCompletionAgent:
     # n_completions - we may ask for more completions for harder testcases, and fewer for simple ones
     def set_input_map(self, input_id, n_completions):
         self.input_id = input_id
-        self.input_map = np.array(input_maps[input_id])
+        input_map = [
+            [1 if v == 0 else 0 if v in (2, 3) else v for v in row]
+            for row in input_maps[input_id]
+        ]
+        self.input_map = np.array(input_map)
         self.n_completions = n_completions
 
 
@@ -163,19 +167,36 @@ class MapCompletionAgent:
     
 
     def get_completions(self):
-        print("Sending prompt..")
-        completion = self.client.chat.completions.create(
-            n=self.n_completions, 
-            model=self.model,  
-            messages=[ self.system_prompt, 
-            {"role": "user", "content":  self.get_user_prompt()} ]
-        )
 
-        responses = {}
-        for i, completion in enumerate(completion.choices):
-            responses[i] = completion.message.content
+        gpt_params = {
+            "n_completions": self.n_completions,
+            "system_prompt": self.system_prompt['content'],
+            "user_prompt": self.get_user_prompt()
+        }
 
-        return responses
+        gemini_params = {
+            "n_completions": self.n_completions,
+            "system_prompt": self.system_prompt['content'],
+            "user_prompt": self.get_user_prompt()
+        }
+
+        claude_params = {
+            "n_completions": self.n_completions,
+            "system_prompt": self.system_prompt['content'],
+            "user_prompt": self.get_user_prompt()
+        }
+
+        groq_params = {
+            "n_completions": self.n_completions,
+            "system_prompt": self.system_prompt['content'],
+            "user_prompt": self.get_user_prompt()
+        }
+        #gpt_responses = get_openai_gpt_completions(gpt_params)
+        #gemini_responses = get_google_gemini_completions(gemini_params)
+        #claude_responses = get_anthropic_claude_completions(claude_params)
+        llama_responses = get_openai_gpt_completions(gpt_params)
+        return llama_responses
+        
     
         
 
@@ -193,9 +214,7 @@ class MapCompletionAgent:
             print(f"************************************ Completion {i}:\n")
 
             code = extract_python(resp)
-
             print(code)
-
             """
             if (not debug_mode):
                 log_file_name = log_completion(self.input_map, code)  # log what we think is Python code part
@@ -207,7 +226,7 @@ class MapCompletionAgent:
                 log_files = i[i.find("/")+1:]
             """
 
-            maps.update( self.process_map_completion_from_response(code, log_file_name, show_plots, console_logs) )
+            maps.update(self.process_map_completion_from_response(code, log_file_name, show_plots, console_logs))
 
 
         # return all map completions sorted by similarity ( or MDL )
@@ -226,14 +245,6 @@ class MapCompletionAgent:
 
             plot_input_response(best_similarity[1]['original_map'], best_similarity[1]['fragment'], "Best Similarity: original map", save_image=log_file_name, show_plots=show_plots)
             plot_input_response(best_similarity[1]['reconstructed_map'], best_similarity[1]['fragment'], "Best Similarity: reconstructed map", save_image=log_file_name, show_plots=show_plots)
-            """
-            if (not debug_mode):
-                if (best_mdl[0] != best_similarity[0]):
-                    generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best Similarity completion", f"out_similarity_{log_files}", show_plots)
-                    generate_completion_plot(self.input_map, best_mdl[1].get("fragment"), "Best MDL completion", f"out_mdl_{log_files}", show_plots)
-                else:
-                    generate_completion_plot(self.input_map, best_similarity[1].get("fragment"), "Best completion", f"out_{log_files}", show_plots)
-            """
 
             print(f"{len(sorted_maps)} completions returned")
 
