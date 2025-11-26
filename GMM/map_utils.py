@@ -109,9 +109,9 @@ def find_map_partition(input_map, fragment):
                     transformed = transform_fragment(fragment, reflection, rotation)
                     if np.array_equal(transformed, sub_map):
                         partition.append({
-                            "top_left": (row, col),
-                            "reflection": reflection,
-                            "rotation": rotation
+                            "top left": (row, col),
+                            "reflect": reflection,
+                            "rotations": rotation
                         })
                         found = True
                         break
@@ -128,9 +128,9 @@ def generate_from_partition(fragment, partition, input_dims):
     generated_map = np.full(input_dims, Cell.UNDEFINED.value)
     
     for p in partition:
-        transformed = transform_fragment(fragment, p["reflection"], p["rotation"])
+        transformed = transform_fragment(fragment, p["reflect"], p["rotations"])
         height, width = transformed.shape
-        tl_row, tl_col = p["top_left"]
+        tl_row, tl_col = p["top left"]
 
         # Check if placement is within bounds
         if tl_row + height > input_dims[0] or tl_col + width > input_dims[1]:
