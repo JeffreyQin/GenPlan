@@ -7,8 +7,8 @@ unit_prompt = [
    '''
    You will be given a map and asked to identify its constituent fragments. 
    The map is given by an input matrix, elements of which can take values 1 and 0. 
-   Your task is to identify a repeating fragment in this input, and ONLY output the fragment as a 2D python array.
-   DO NOT include anything else in the completion, not even "the fragment is".
+   Your task is to identify a repeating fragment in this input, and output the fragment as a 2D array.
+   DO NOT include anything else in the completion, other than the 2D array. 
 
    To be considered a repeating fragment, the fragment does not have to tile the space exactly, but it should be repeated at least twice. It should also not contain any part of the map's border
    The fragment instances may be flipped horizontally or vertically, translated horizontally or vertically, rotated 90 degrees
@@ -191,7 +191,7 @@ Now is your turn. Respond by completing the following Python code,
 2. include the entire input_map provided, do not use ... to omit
 3. ONLY fill partition(), do not use variables/functions that are not defined
 4. In the returned copies, follow the exact key names in the examples: 'top left', 'reflect', 'rotations'.
-4. DO NOT include anything else in the completion
+4. DO NOT include anything else in the completion.
 
 # START OF CODE, make sure to define all arrays as numpy arrays
 import numpy as np
