@@ -28,8 +28,8 @@ class PartialObservationAgent:
 
     def set_maps(self, partial_map, complete_map, zero_one_only=True):
         if zero_one_only:
-            partial_map = np.where(np.array(partial_map) > 0, 1, 0)
-            complete_map = np.where(np.array(complete_map) > 0, 1, 0)
+            partial_map = np.where(np.array(partial_map) > 0, 0, 1)
+            complete_map = np.where(np.array(complete_map) > 0, 0, 1)
 
         self.partial_map = np.array(partial_map)
         self.complete_map = np.array(complete_map)
@@ -62,7 +62,7 @@ class PartialObservationAgent:
 
         for i in range(1):
             result = client.chat.completions.create(
-                model="moonshotai/kimi-k2-instruct-0905",  # Default recommended model
+                model="llama-3.3-70b-versatile",  # Default recommended model
                 messages=[
                     self.unit_system_prompt,
                     {"role": "user", "content": self.get_unit_prompt()}
@@ -82,7 +82,7 @@ class PartialObservationAgent:
 
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-        model = genai.GenerativeModel('gemini-1.5-flash')  # or another Gemini model
+        model = genai.GenerativeModel('gemini-2.5-flash')  # or another Gemini model
 
         response = model.generate_content(
             self.get_unit_prompt(),
@@ -121,7 +121,7 @@ class PartialObservationAgent:
 
         for i in range(1):
             result = client.chat.completions.create(
-                model="moonshotai/kimi-k2-instruct-0905",  # Default recommended model
+                model="llama-3.3-70b-versatile",  # Default recommended model
                 messages=[
                     self.recon_system_prompt,
                     {"role": "user", "content": self.get_reconstruction_prompt(unit)}
@@ -141,7 +141,7 @@ class PartialObservationAgent:
 
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-        model = genai.GenerativeModel('gemini-2.0-flash')  # or another Gemini model
+        model = genai.GenerativeModel('gemini-2.5-flash')  # or another Gemini model
 
         response = model.generate_content(
             self.get_reconstruction_prompt(unit),
@@ -180,14 +180,19 @@ class PartialObservationAgent:
         log_files = log_file_name = ""
 
         # get unit candidates
-        unit_candidates = self.get_gemini_unit_completions()
+        unit_candidates = self.get_unit_completions()
         
         for i, unit_str in unit_candidates.items():
 
             print("\n=============== unit candidate", i, "================\n")
+            
+            print(unit_str)
 
-            print(unit_candidates)
-            recon_resp = self.get_groq_reconstruction_completion(unit_str)
+            if unit_str.startswith('`'):
+                unit_str = unit_str.split("python")[1]
+                unit_str = unit_str.split("```")[0]
+
+            recon_resp = self.get_reconstruction_completion(unit_str)
             raw_recon_text = recon_resp[0]
 
             recon_code = extract_python(raw_recon_text)
@@ -346,4 +351,3 @@ class PartialObservationAgent:
             print(f"Reconstruction failed with Error: {e}")
 
         return map_completions
-    
