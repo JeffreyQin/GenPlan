@@ -110,11 +110,22 @@ def substitute_corrupted_copy(
         map_data[agent_row, agent_column] = Cell.AGENT.value
 
 
+EXPLORATION_MILESTONES = (0.25, 0.50, 0.75, 0.90, 1.00)
+
+
 def reset_rollout_counters() -> None:
     globals.escape_rollout_count = 0
     globals.bridge_rollout_count = 0
     globals.fragment_rollout_count = 0
     globals.simul_rollout_count = 0
+
+
+def total_rollouts_now() -> int:
+    return (
+        globals.bridge_rollout_count
+        + globals.fragment_rollout_count
+        + globals.escape_rollout_count
+    )
 
 
 def observations_along_path(map_data: np.ndarray, path: list[tuple[int, int]]) -> set[tuple[int, int]]:
@@ -126,28 +137,86 @@ def observations_along_path(map_data: np.ndarray, path: list[tuple[int, int]]) -
     return observed
 
 
+def rollouts_at_path_index(
+    path_len: int,
+    path_rollout_checkpoints: list[tuple[int, int]],
+) -> list[int]:
+    """Expand sparse (path_length, rollouts) checkpoints to one value per path index.
+
+    Each path segment is attributed the cumulative rollouts measured at the end of
+    the planning phase that produced that segment.
+    """
+    if path_len <= 0:
+        return []
+    rollouts = [0] * path_len
+    prev_length = 0
+    current = 0
+    for length, phase_rollouts in path_rollout_checkpoints:
+        current = phase_rollouts
+        for index in range(prev_length, min(length, path_len)):
+            rollouts[index] = current
+        prev_length = length
+    for index in range(prev_length, path_len):
+        rollouts[index] = current
+    return rollouts
+
+
+def exploration_milestones_from_trace(
+    map_data: np.ndarray,
+    path: list[tuple[int, int]],
+    rollouts_by_index: list[int],
+    milestones: tuple[float, ...] = EXPLORATION_MILESTONES,
+) -> dict[str, int | None]:
+    """Return rollouts first needed to observe each milestone fraction of open cells."""
+    if not path:
+        return {f"rollouts_at_{int(m * 100)}pct": None for m in milestones}
+
+    generator = Generator(map_data)
+    total_open = len(generator.rooms)
+    if total_open == 0:
+        return {f"rollouts_at_{int(m * 100)}pct": None for m in milestones}
+
+    remaining = list(milestones)
+    hit: dict[str, int | None] = {f"rollouts_at_{int(m * 100)}pct": None for m in milestones}
+    observed: set[tuple[int, int]] = set()
+
+    for index, position in enumerate(path):
+        observed |= generator.get_observation(position)
+        ratio = len(observed) / total_open
+        rollouts = rollouts_by_index[index] if index < len(rollouts_by_index) else rollouts_by_index[-1]
+        while remaining and ratio + 1e-12 >= remaining[0]:
+            milestone = remaining.pop(0)
+            hit[f"rollouts_at_{int(milestone * 100)}pct"] = rollouts
+
+    return hit
+
+
 def run_naive_remainder(
     map_data: np.ndarray,
     start_pos: tuple[int, int],
     prior_observed: set[tuple[int, int]],
-) -> tuple[list[tuple[int, int]], int]:
+    rollouts_before_naive: int,
+) -> tuple[list[tuple[int, int]], list[int], int]:
     """Explore remaining unobserved open cells with naive FragmentPOMCP.
 
     Starts from ``start_pos`` with ``prior_observed`` already known, so planning
     focuses on the leftover (e.g. corrupted / non-fragment) regions.
+
+    Returns path, cumulative total rollouts at each path index, and naive-only rollouts.
     """
     generator = Generator(map_data)
     prior_observed = set(prior_observed) | generator.get_observation(start_pos)
     belief = {room for room in generator.rooms if room not in prior_observed}
 
     if not belief:
-        return [start_pos], 0
+        return [start_pos], [rollouts_before_naive], 0
 
     rollouts_before = globals.fragment_rollout_count
     pomcp = FragmentPOMCP(generator, depth=len(generator.rooms))
     root = Node(start_pos, prior_observed, belief, parent_id="", parent_a=0)
 
     path = [start_pos]
+    rollouts_by_index = [rollouts_before_naive]
     max_steps = len(generator.rooms) * 10
     for _ in range(max_steps):
         if len(root.belief) == 0:
@@ -160,36 +229,61 @@ def run_naive_remainder(
         root = root.children[best_action]
         path.append(root.agent_pos)
         generator.update_observed(root.agent_pos)
+        rollouts_by_index.append(rollouts_before_naive + (globals.fragment_rollout_count - rollouts_before))
 
-    return path, globals.fragment_rollout_count - rollouts_before
+    return path, rollouts_by_index, globals.fragment_rollout_count - rollouts_before
 
 
 def run_sbp_then_naive(
     map_data: np.ndarray,
     fragment: np.ndarray,
     copies: list[dict],
-) -> dict[str, int]:
+) -> dict:
     """Run SBP on remaining copies, then naive POMCP on the unplanned remainder."""
     reset_rollout_counters()
     working_map = map_data.copy()
-    agent_path, *_ = run_sbp_planner(working_map, fragment.copy(), deepcopy(copies))
+    (
+        agent_path,
+        _checkpoints,
+        _escape_rollout_checkpoints,
+        _pomcp_rollout_checkpoints,
+        _bridge_rollout_checkpoints,
+        _bridge_time_checkpoints,
+        _fragment_time_checkpoints,
+        _escape_time_checkpoints,
+        path_rollout_checkpoints,
+    ) = run_sbp_planner(working_map, fragment.copy(), deepcopy(copies))
 
-    sbp_rollouts = (
-        globals.bridge_rollout_count
-        + globals.fragment_rollout_count
-        + globals.escape_rollout_count
-    )
+    sbp_rollouts = total_rollouts_now()
 
     if not agent_path:
         raise RuntimeError("SBP returned an empty agent path")
 
+    sbp_rollouts_by_index = rollouts_at_path_index(len(agent_path), path_rollout_checkpoints)
     prior_observed = observations_along_path(map_data, agent_path)
-    _, naive_rollouts = run_naive_remainder(map_data, agent_path[-1], prior_observed)
+    naive_path, naive_rollouts_by_index, naive_rollouts = run_naive_remainder(
+        map_data,
+        agent_path[-1],
+        prior_observed,
+        rollouts_before_naive=sbp_rollouts,
+    )
+
+    # Avoid double-counting the shared handoff cell.
+    if naive_path and naive_path[0] == agent_path[-1]:
+        full_path = agent_path + naive_path[1:]
+        full_rollouts = sbp_rollouts_by_index + naive_rollouts_by_index[1:]
+    else:
+        full_path = agent_path + naive_path
+        full_rollouts = sbp_rollouts_by_index + naive_rollouts_by_index
+
+    milestones = exploration_milestones_from_trace(map_data, full_path, full_rollouts)
 
     return {
         "sbp_rollouts": sbp_rollouts,
         "naive_rollouts": naive_rollouts,
         "total_rollouts": sbp_rollouts + naive_rollouts,
+        "exploration_milestones": milestones,
+        **milestones,
     }
 
 
@@ -220,6 +314,10 @@ def plot_results(
 
 
 def append_iteration_log(log_path: Path, iteration: int, point: dict, note: str = "") -> None:
+    milestone_fields = "\t".join(
+        f"rollouts_at_{pct}pct={point.get(f'rollouts_at_{pct}pct')}"
+        for pct in (25, 50, 75, 90, 100)
+    )
     with log_path.open("a", encoding="utf-8") as log_file:
         log_file.write(
             f"iteration={iteration}\t"
@@ -227,7 +325,8 @@ def append_iteration_log(log_path: Path, iteration: int, point: dict, note: str 
             f"coverage_percentage={point['coverage_percentage']:.2f}\t"
             f"sbp_rollouts={point['sbp_rollouts']}\t"
             f"naive_rollouts={point['naive_rollouts']}\t"
-            f"total_rollouts={point['total_rollouts']}"
+            f"total_rollouts={point['total_rollouts']}\t"
+            f"{milestone_fields}"
         )
         if note:
             log_file.write(f"\t{note}")
@@ -253,6 +352,10 @@ def run_experiment(
         log_file.write(f"starting_copies={len(copies)}\n")
         log_file.write("corruption=substitute_fragment_N_corrupted\n")
         log_file.write("planner=SBP then naive POMCP cleanup\n")
+        log_file.write(
+            "milestones=rollouts when open-cell observation first reaches "
+            "25/50/75/90/100 percent\n"
+        )
         log_file.write("---\n")
 
     print(f"Running experiment on map_set{map_set} map {map_number} with seed {seed}")
@@ -274,11 +377,16 @@ def run_experiment(
             **rollout_stats,
         }
         results.append(point)
+        milestones = ", ".join(
+            f"{pct}%={rollout_stats.get(f'rollouts_at_{pct}pct')}"
+            for pct in (25, 50, 75, 90, 100)
+        )
         print(
             f"[{len(copies)} copies] "
             f"sbp={rollout_stats['sbp_rollouts']} "
             f"naive={rollout_stats['naive_rollouts']} "
-            f"total={rollout_stats['total_rollouts']}"
+            f"total={rollout_stats['total_rollouts']} "
+            f"milestones[{milestones}]"
         )
         append_iteration_log(log_path, iteration, point)
 

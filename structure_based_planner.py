@@ -326,6 +326,19 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
     escape_rollout_checkpoints = []
     pomcp_rollout_checkpoints = []
     bridge_rollout_checkpoints = []
+    # (path_length, cumulative total rollouts) after each planning phase
+    path_rollout_checkpoints = []
+
+    def cumulative_rollouts() -> int:
+        return (
+            globals.bridge_rollout_count
+            + globals.fragment_rollout_count
+            + globals.escape_rollout_count
+        )
+
+    def mark_path_rollout_checkpoint() -> None:
+        checkpoints.append(len(agent_path))
+        path_rollout_checkpoints.append((len(agent_path), cumulative_rollouts()))
 
     map_h, map_w = map.shape
     segmentation = segment_map(fragment, copies)
@@ -361,7 +374,7 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print("Path to next fragment")
         print(bridge_path)
         agent_path.extend(bridge_path)
-        checkpoints.append(len(agent_path))
+        mark_path_rollout_checkpoint()
 
         agent_pos = bridge_path[-1]
         # Bridge POMCP can wander into a fragment interior (e.g. (2,5) on map 8)
@@ -378,7 +391,7 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
             print(recovery_path)
             if len(recovery_path) > 1:
                 agent_path.extend(recovery_path[1:])
-                checkpoints.append(len(agent_path))
+                mark_path_rollout_checkpoint()
             agent_pos = recovery_path[-1]
 
         copy, base_r, base_c = segmentation[agent_pos]
@@ -401,7 +414,7 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print("Path to explore current fragment")
         print([coords_mapping[pos[0], pos[1]] for pos in fragment_path])
         agent_path.extend([coords_mapping[pos[0], pos[1]] for pos in fragment_path])
-        checkpoints.append(len(agent_path))
+        mark_path_rollout_checkpoint()
 
         # perform escape search
         fragment_agent_pos = fragment_path[-1] # fragment-relative position to begin escape
@@ -418,7 +431,7 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         print("Path to escape current fragment")
         print([coords_mapping[pos[0], pos[1]] for pos in escape_path])
         agent_path.extend([coords_mapping[pos[0], pos[1]] for pos in escape_path])
-        checkpoints.append(len(agent_path))
+        mark_path_rollout_checkpoint()
 
         escape_rollout_checkpoints.append(globals.escape_rollout_count)
         pomcp_rollout_checkpoints.append(globals.fragment_rollout_count)
@@ -435,5 +448,15 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         segmentation = segment_map(fragment, copies)
 
 
-    return agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints
+    return (
+        agent_path,
+        checkpoints,
+        escape_rollout_checkpoints,
+        pomcp_rollout_checkpoints,
+        bridge_rollout_checkpoints,
+        bridge_time_checkpoints,
+        fragment_time_checkpoints,
+        escape_time_checkpoints,
+        path_rollout_checkpoints,
+    )
 

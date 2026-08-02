@@ -255,7 +255,7 @@ if __name__ == "__main__":
     map_copy = map_data.copy()
     # Test SBP planner
     print("\nStarting SDB planner...")
-    agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints = run_modular(map_data, fragment_data, copies_data)
+    agent_path, checkpoints, escape_rollout_checkpoints, pomcp_rollout_checkpoints,  bridge_rollout_checkpoints, bridge_time_checkpoints, fragment_time_checkpoints, escape_time_checkpoints, _path_rollout_checkpoints = run_modular(map_data, fragment_data, copies_data)
     observed =  how_much_observed(map_copy, checkpoints, agent_path)
     print("SBP planning completed successfully!")
     
