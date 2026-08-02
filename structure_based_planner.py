@@ -61,7 +61,7 @@ def path_to_nearest_fragment_border(
                 return path
             queue.append(cell)
 
-    raise RuntimeError(f"No reachable fragment border from {start}")
+    return []
 
 # Constants for visualization
 TILE_SIZE = 30
@@ -363,6 +363,13 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         bridge_start = time.time()
 
         remaining_copies = [copy for copy in copies if copy['top left'] not in explored_copies]
+        if not path_to_nearest_fragment_border(map, agent_pos, fragment, segmentation):
+            print(
+                f"No reachable remaining fragment border from {agent_pos}; "
+                "ending SBP early for naive cleanup"
+            )
+            break
+
         bridge_path, bridge_moves, observation, reached_explore = run_bridge_search(
             map, agent_pos, fragment, remaining_copies
         )
@@ -387,6 +394,12 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
             recovery_path = path_to_nearest_fragment_border(
                 map, agent_pos, fragment, segmentation
             )
+            if not recovery_path:
+                print(
+                    f"No reachable fragment border from {agent_pos}; "
+                    "ending SBP early for naive cleanup"
+                )
+                break
             print("Bridge did not reach a fragment border; recovering via BFS")
             print(recovery_path)
             if len(recovery_path) > 1:
