@@ -45,6 +45,21 @@ fragment_1 = np.array (
     [2,2,2,2,2,2,2,2,2],
 ]
 )
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_1_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2,2,2],
+    [0,2,0,0,2,2,2,0,0],
+    [2,0,0,0,0,0,2,2,2],
+    [2,0,0,0,0,0,0,2,2],
+    [2,0,0,0,0,0,2,2,2],
+    [2,0,0,0,2,0,2,2,2],
+    [2,2,2,2,2,2,2,2,2],
+]
+)
 copies_1 = [
     {"top left": (1,1), "reflect": False, "rotations": 0},
     {"top left": (1,9), "reflect": False, "rotations": 0},
@@ -117,6 +132,24 @@ fragment_2 = np.array (
     [2,0,2,2,2,2,0,2],
     [2,0,2,0,0,0,0,2],
     [2,2,2,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2],
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_2_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2],
+    [2,2,2,2,0,2,2,2],
+    [2,2,2,2,0,0,2,2],
+    [2,2,0,0,0,0,2,2],
+    [2,0,0,0,0,0,0,2],
+    [2,0,0,0,0,0,0,2],
+    [2,0,0,0,2,0,0,2],
+    [2,0,2,0,2,2,2,2],
     [2,2,2,2,2,2,2,2],
 ]
 )
@@ -229,6 +262,26 @@ map_4 = np.array (
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 )
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_3_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,2,0,0,0,0,0,2,2,2,0,2,2],
+    [2,0,0,0,0,0,0,0,0,0,0,2,2],
+    [2,2,0,0,0,0,0,0,0,0,0,0,2],
+    [2,2,2,0,0,0,0,0,0,0,0,2,2],
+    [2,2,2,2,0,0,0,0,0,0,0,2,2],
+    [2,2,0,0,0,0,0,0,0,0,0,2,2],
+    [2,2,0,0,0,0,0,0,0,0,0,2,2],
+    [2,2,2,0,0,2,0,0,2,0,2,2,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2],
+]
+)
 fragment_4 = np.array (
 [
     [2,2,2,2,2,2,2],
@@ -237,6 +290,20 @@ fragment_4 = np.array (
     [2,0,2,2,2,0,2],
     [2,0,0,0,0,0,2],
     [2,2,2,2,2,2,2]
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_4_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2],
+    [2,2,2,0,2,2,2],
+    [2,0,2,0,0,0,2],
+    [2,0,0,0,0,0,2],
+    [2,0,2,2,0,0,2],
+    [2,2,2,2,2,2,2],
 ]
 )
 copies_4 = [
@@ -297,6 +364,23 @@ fragment_5 = np.array (
     [2,2,2,0,2,2,2,0,2,2],
     [2,2,2,0,2,2,2,2,2,2],
     [2,2,2,0,0,0,0,0,2,2],
+    [2,2,2,2,2,2,2,2,2,2],
+    [0,2,2,2,2,2,2,2,2,2],
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_5_corrupted = np.array (
+[
+    [0,2,2,2,2,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2,2,2],
+    [2,2,0,0,2,2,2,2,2,2],
+    [2,2,0,2,2,2,2,2,2,2],
+    [2,0,0,2,2,2,0,0,2,2],
+    [2,0,0,0,2,0,0,0,2,2],
+    [2,2,2,2,2,2,2,2,0,2],
     [2,2,2,2,2,2,2,2,2,2],
     [0,2,2,2,2,2,2,2,2,2],
 ]
@@ -364,6 +448,21 @@ fragment_6 = np.array (
     [2,2,2,2,2,2,0,0],
 ]
 )
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_6_corrupted = np.array (
+[
+    [2,2,2,2,2,2,0,0],
+    [2,2,2,2,2,2,0,0],
+    [2,2,2,2,0,2,2,2],
+    [2,2,0,0,0,0,2,2],
+    [2,0,0,0,0,0,2,2],
+    [2,2,2,2,2,0,0,0],
+    [2,2,2,2,2,2,0,0],
+]
+)
 copies_6 = [
     {"top left": (1,1), "reflect": False, "rotations": 0},
     {"top left": (1,10), "reflect": False, "rotations": 0},
@@ -423,6 +522,23 @@ fragment_7 = np.array (
     [2,0,2,0,0,2,0,2],
     [2,0,2,2,2,2,0,2],
     [2,0,0,0,0,0,0,2],
+    [2,2,2,2,2,2,2,2],
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_7_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2,2],
+    [2,2,0,0,2,2,2,2],
+    [2,0,0,0,0,0,2,2],
+    [2,0,0,0,0,2,2,2],
+    [2,2,0,0,0,0,0,2],
+    [2,2,0,0,0,0,2,2],
+    [2,2,0,0,0,0,2,2],
+    [2,2,2,2,2,2,2,2],
     [2,2,2,2,2,2,2,2],
 ]
 )
@@ -499,24 +615,25 @@ fragment_8 = np.array (
     [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
 ]
 )
-# Hand-authored alternate layout for coverage/rollout experiments.
-# Keeps the same border entry cells as fragment_8; all open cells are
-# reachable from every entry. Used to "remove" a copy's structure.
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
 fragment_8_corrupted = np.array (
 [
     [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
     [0,0,0,0,2,2,2,2,2,2,2,0,0,0,0],
-    [0,0,0,2,2,0,0,0,0,0,2,2,0,0,0],
-    [0,0,2,2,0,0,2,2,2,0,0,2,2,0,0],
-    [0,2,2,0,0,2,2,0,2,2,0,0,2,2,0],
-    [2,2,2,2,2,2,0,0,0,2,2,2,2,2,2],
-    [2,0,0,0,0,2,2,2,2,2,0,0,0,0,2],
-    [2,0,0,0,0,2,0,0,0,2,0,0,0,0,2],
-    [2,2,2,2,2,2,0,0,0,2,2,2,2,2,2],
-    [0,2,2,0,0,2,2,0,2,2,0,0,2,2,0],
-    [0,0,2,2,0,0,2,2,2,0,0,2,2,0,0],
-    [0,0,0,2,2,0,0,0,0,0,2,2,0,0,0],
-    [0,0,0,0,2,2,2,2,2,2,2,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,2,2,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,2,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,2,2,0],
+    [2,0,0,0,0,0,0,0,0,0,0,2,2,2,2],
+    [2,2,2,0,0,0,0,0,0,0,2,2,2,2,2],
+    [2,2,2,2,0,0,0,0,0,0,2,0,2,2,2],
+    [2,2,2,2,2,0,0,0,0,0,0,0,2,2,2],
+    [0,0,0,2,2,2,0,0,0,0,2,2,2,2,0],
+    [0,0,0,2,2,2,0,0,0,0,0,2,2,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,2,2,0,0],
+    [0,0,2,2,2,2,2,2,2,2,2,2,2,0,0],
     [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
 ]
 )
@@ -575,6 +692,20 @@ fragment_9_a = np.array (
     [2,2,2,2,2,2,2]
 ]
 )
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_9_a_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2],
+    [2,2,0,0,2,2,2],
+    [2,2,0,0,2,2,2],
+    [2,0,0,0,0,2,2],
+    [2,0,0,2,2,2,2],
+    [2,2,2,2,2,2,2],
+]
+)
 copies_9_a = [
     {"top left": (1,1), "reflect": False, "rotations": 0},
     {"top left": (1,7), "reflect": False, "rotations": 0},
@@ -600,6 +731,20 @@ fragment_9_b = np.array (
     [2,0,0,2,2,2,2],
     [2,2,2,2,0,0,2],
     [2,2,2,0,0,0,2],
+    [2,2,2,2,2,2,2],
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_9_b_corrupted = np.array (
+[
+    [2,2,2,2,2,2,2],
+    [2,2,2,0,2,0,2],
+    [2,2,0,0,0,2,2],
+    [2,2,0,0,0,2,2],
+    [2,0,0,0,2,2,2],
     [2,2,2,2,2,2,2],
 ]
 )
@@ -652,6 +797,19 @@ fragment_10 = np.array (
 [
     [2,2,2,2,2],
     [2,0,0,0,2],
+    [2,0,0,0,2],
+    [2,0,0,0,2],
+    [2,2,2,2,2],
+]
+)
+
+# Perturbed variant of the fragment above for corruption experiments.
+# Same open-cell count (except map 10: same count via corner/interior swap);
+# border connectivity preserved; all opens reachable from every entry.
+fragment_10_corrupted = np.array (
+[
+    [0,2,2,2,2],
+    [2,2,0,0,2],
     [2,0,0,0,2],
     [2,0,0,0,2],
     [2,2,2,2,2],

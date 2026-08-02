@@ -67,6 +67,28 @@ class BridgeGenerator():
         return (base_r == 0 or base_r == self.frag_dims[0] - 1 or
                 base_c == 0 or base_c == self.frag_dims[1] - 1)
 
+    def is_fragment_interior(self, pos: tuple[int, int]) -> bool:
+        """True if pos lies inside an unexplored fragment copy, not on its border."""
+        return pos in self.segmentation and not self.is_fragment_border(pos)
+
+    def blocks_entry_without_explore(
+        self, agent_pos: tuple[int, int], dest: tuple[int, int]
+    ) -> bool:
+        """Disallow stepping into a fragment interior unless already inside that copy.
+
+        From outside or from a border cell, entering the interior requires EXPLORE
+        rather than a normal move. If the agent is already in the interior (e.g.
+        spawn point), movement within/out of that copy remains allowed.
+        """
+        if not self.is_fragment_interior(dest):
+            return False
+        if not self.is_fragment_interior(agent_pos):
+            return True
+        # Already inside some copy: only allow continuing inside the same copy.
+        dest_copy, _, _ = self.segmentation[dest]
+        agent_copy, _, _ = self.segmentation[agent_pos]
+        return dest_copy["top left"] != agent_copy["top left"]
+
     
     def get_observation(self, pos: tuple[int, int]):
         """
@@ -199,6 +221,10 @@ class BridgeGenerator():
 
         if dest not in self.rooms:
             return False, agent_pos, curr_obs, curr_belief, - 1.0
+
+        # Must use EXPLORE to enter a fragment interior from a border/outside.
+        if self.blocks_entry_without_explore(agent_pos, dest):
+            return False, agent_pos, curr_obs, curr_belief, -1.0
 
         # update obs and belief
         new_obs = curr_obs.copy()

@@ -34,6 +34,15 @@ fragment_2 = np.array([
     [0, 2, 0],
 ])
 
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_2_corrupted = np.array(
+[
+    [0,2,0],
+    [0,2,0],
+    [0,2,0],
+]
+)
+
 copies_2 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,4), "reflect": False, "rotations": 0},
@@ -55,6 +64,15 @@ fragment_3 = np.array([
         [0, 2, 2, 2, 2],
         [0, 0, 0, 0, 0]
     ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_3_corrupted = np.array(
+[
+    [0,0,2,0,0],
+    [0,0,2,2,2],
+    [0,0,0,0,0],
+]
+)
 
 copies_3 = [
         {"top left": (0,0), "reflect": False, "rotations": 0},
@@ -80,6 +98,17 @@ fragment_4 = np.array([
     [2, 0, 2, 2, 0],
     [2, 0, 0, 2, 0],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_4_corrupted = np.array(
+[
+    [2,2,2,2,2],
+    [2,0,0,2,0],
+    [2,0,0,2,0],
+    [2,0,0,2,0],
+]
+)
+
 
 copies_4 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
@@ -110,6 +139,18 @@ fragment_5 = np.array([
     [2, 2, 2, 2, 2],
 ])
 
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_5_corrupted = np.array(
+[
+    [2,2,2,2,2],
+    [2,2,0,0,0],
+    [2,2,0,0,0],
+    [2,0,2,0,0],
+    [2,2,2,2,2],
+]
+)
+
+
 copies_5 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
     {"top left": (0,8), "reflect": True, "rotations": 0},
@@ -135,6 +176,15 @@ fragment_6 = np.array([
     [0, 0, 0, 0, 0, 0, 0],
 ])
 
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_6_corrupted = np.array(
+[
+    [2,0,0,0,0,0,2],
+    [2,2,2,2,2,2,2],
+    [0,0,0,0,0,0,0],
+]
+)
+
 copies_6 = [
     {"top left": (0,1), "reflect": False, "rotations": 0},
     {"top left": (3,1), "reflect": False, "rotations": 0},
@@ -156,6 +206,15 @@ fragment_7 = np.array([
  [2, 2, 0],
  [0, 2, 0],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_7_corrupted = np.array(
+[
+    [0,2,2],
+    [2,2,0],
+    [0,2,0],
+]
+)
 
 copies_7 = [
     {"top left": (0,0), "reflect": False, "rotations": 0},
@@ -179,6 +238,15 @@ fragment_8 = np.array([
  [2, 2, 0],
  [0, 2, 0],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_8_corrupted = np.array(
+[
+    [0,2,2],
+    [2,2,0],
+    [0,2,0],
+]
+)
 
 copies_8 = [
     {"top left": (0,1), "reflect": False, "rotations": 0},
@@ -213,6 +281,17 @@ fragment_9 = np.array([
     [2, 0, 0, 2, 0, 2, 2],
     [2, 2, 2, 2, 0, 2, 2],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_9_corrupted = np.array(
+[
+    [2,2,2,2,2,2,2],
+    [2,2,2,0,0,2,2],
+    [2,2,0,0,0,0,2],
+    [2,2,2,2,0,2,2],
+]
+)
+
 
 copies_9 = [
     {"top left": (0,2), "reflect": False, "rotations": 0},
@@ -282,6 +361,20 @@ fragment_10 = np.array([
     [0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0],
     [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_10_corrupted = np.array(
+[
+    [0,0,0,2,2,2,2,2,0,0,0],
+    [0,0,2,2,2,2,0,0,2,2,0],
+    [0,2,0,2,0,0,0,0,0,2,0],
+    [2,2,0,2,0,0,0,0,2,2,2],
+    [0,2,2,2,0,0,2,2,2,0,0],
+    [0,2,2,2,2,0,2,2,2,0,0],
+    [0,0,0,2,2,2,2,2,0,0,0],
+]
+)
+
 copies_10 = [
     {"top left": (11,20), "reflect": False, "rotations": 0},
     {"top left": (19,20), "reflect": False, "rotations": 0},
@@ -331,6 +424,23 @@ fragment_11 = np.array([
     [0, 0, 0, 0, 0, 0, 0, 2, 2, 2],
     [0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
 ])
+
+# Perturbed variant for corruption / smoke-test experiments.
+fragment_11_corrupted = np.array(
+[
+    [2,2,2,2,2,2,2,0,0,0],
+    [2,2,2,0,2,2,2,0,0,0],
+    [2,2,2,2,2,2,2,2,2,0],
+    [2,2,2,2,2,0,0,0,2,0],
+    [0,2,0,0,2,0,2,2,2,2],
+    [0,0,0,0,0,0,2,2,2,2],
+    [0,0,0,0,0,0,2,2,2,2],
+    [0,0,0,0,0,0,0,2,2,2],
+    [0,0,0,0,0,0,0,2,2,2],
+    [0,0,0,0,0,0,0,0,2,2],
+]
+)
+
 
 copies_11 = [
     {"top left": (1,5), "reflect": False, "rotations": 0},

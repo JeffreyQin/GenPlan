@@ -1,5 +1,5 @@
 """
-Fragment-coverage vs SBP-rollout experiment for a single map_set2 map.
+Fragment-coverage vs SBP-rollout experiment for map_set1 / map_set2.
 
 While at least 2 fragment copies remain:
   1. measure all-cells fragment coverage
@@ -7,6 +7,8 @@ While at least 2 fragment copies remain:
      leftover unobserved map; record total rollouts
   3. if more than 2 copies remain, replace one random copy's footprint
      with a hand-authored corrupted fragment and drop it from copies
+
+map_set1 is the smaller smoke-test suite; map_set2 is the full suite.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ import random
 import sys
 from copy import deepcopy
 from pathlib import Path
+from types import ModuleType
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,6 +30,7 @@ if str(MAPS_DIR) not in sys.path:
     sys.path.insert(0, str(MAPS_DIR))
 
 import globals
+import map_set1
 import map_set2
 from fragment_coverage import calculate_coverage, transform_fragment
 from fragment_search import FragmentPOMCP
@@ -34,25 +38,49 @@ from generator import Generator
 from structure_based_planner import run_sbp_planner
 from tree_builder import Cell, Node
 
-# Map 8: ~89% all-cell / 100% open-cell fragment coverage, 6 copies.
+DEFAULT_MAP_SET = 2
 DEFAULT_MAP = 8
 OUTPUT_DIR = ROOT / "experiment_results"
 
+# map_set1: skip 1 (no copies), 10/11 (large), 12 (empty fragment).
+ALL_MAPS_SET1 = [2, 3, 4, 5, 6, 7, 8]
+# map_set2: map 9 has two fragment templates; SBP takes one, so skip it.
+ALL_MAPS_SET2 = [1, 2, 3, 4, 5, 6, 7, 8, 10]
 
-def load_map(map_number: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict]]:
-    if map_number == 9:
-        raise ValueError("Map 9 has two fragment types; pick a single-fragment map for this experiment.")
+MAP_SETS: dict[int, tuple[ModuleType, list[int]]] = {
+    1: (map_set1, ALL_MAPS_SET1),
+    2: (map_set2, ALL_MAPS_SET2),
+}
 
-    map_data = getattr(map_set2, f"map_{map_number}").copy()
-    fragment = getattr(map_set2, f"fragment_{map_number}").copy()
-    corrupted_name = f"fragment_{map_number}_corrupted"
-    if not hasattr(map_set2, corrupted_name):
+
+def load_map(
+    map_module: ModuleType,
+    map_number: int,
+    map_set: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict]]:
+    if map_set == 2 and map_number == 9:
         raise ValueError(
-            f"Missing {corrupted_name} in map_set2.py. "
-            "Add a hand-authored corrupted fragment before running this experiment."
+            "map_set2 map 9 has two fragment types (9_a / 9_b); "
+            "this experiment supports single-fragment maps only."
         )
-    corrupted_fragment = getattr(map_set2, corrupted_name).copy()
-    copies = deepcopy(getattr(map_set2, f"copies_{map_number}"))
+
+    map_data = getattr(map_module, f"map_{map_number}").copy()
+    fragment = getattr(map_module, f"fragment_{map_number}").copy()
+    corrupted_name = f"fragment_{map_number}_corrupted"
+    if not hasattr(map_module, corrupted_name):
+        raise ValueError(
+            f"Missing {corrupted_name} in map_set{map_set}.py. "
+            "Add a corrupted fragment before running this experiment."
+        )
+    if not hasattr(map_module, f"copies_{map_number}"):
+        raise ValueError(f"Missing copies_{map_number} in map_set{map_set}.py")
+
+    corrupted_fragment = getattr(map_module, corrupted_name).copy()
+    copies = deepcopy(getattr(map_module, f"copies_{map_number}"))
+    if len(copies) < 2:
+        raise ValueError(
+            f"map_set{map_set} map {map_number} has {len(copies)} copies; need at least 2."
+        )
     return map_data, fragment, corrupted_fragment, copies
 
 
@@ -170,7 +198,12 @@ def all_cells_coverage(map_data: np.ndarray, fragment: np.ndarray, copies: list[
     return float(all_cells_percentage)
 
 
-def plot_results(results: list[dict], map_number: int, output_path: Path) -> None:
+def plot_results(
+    results: list[dict],
+    map_set: int,
+    map_number: int,
+    output_path: Path,
+) -> None:
     labels = [f"{point['coverage_percentage']:.2f}%" for point in results]
     rollouts = [point["total_rollouts"] for point in results]
 
@@ -180,7 +213,7 @@ def plot_results(results: list[dict], map_number: int, output_path: Path) -> Non
     axis.set_xticklabels(labels, rotation=45, ha="right")
     axis.set_xlabel("Fragment coverage (all cells)")
     axis.set_ylabel("Total rollouts (SBP + naive cleanup)")
-    axis.set_title(f"Map {map_number}: rollouts vs fragment coverage")
+    axis.set_title(f"map_set{map_set} map {map_number}: rollouts vs fragment coverage")
     fig.tight_layout()
     fig.savefig(output_path, dpi=150)
     plt.close(fig)
@@ -202,12 +235,19 @@ def append_iteration_log(log_path: Path, iteration: int, point: dict, note: str 
         log_file.flush()
 
 
-def run_experiment(map_number: int, seed: int, log_path: Path) -> list[dict]:
+def run_experiment(
+    map_module: ModuleType,
+    map_set: int,
+    map_number: int,
+    seed: int,
+    log_path: Path,
+) -> list[dict]:
     rng = random.Random(seed)
-    map_data, fragment, corrupted_fragment, copies = load_map(map_number)
+    map_data, fragment, corrupted_fragment, copies = load_map(map_module, map_number, map_set)
     results: list[dict] = []
 
     with log_path.open("w", encoding="utf-8") as log_file:
+        log_file.write(f"map_set={map_set}\n")
         log_file.write(f"map={map_number}\n")
         log_file.write(f"seed={seed}\n")
         log_file.write(f"starting_copies={len(copies)}\n")
@@ -215,7 +255,7 @@ def run_experiment(map_number: int, seed: int, log_path: Path) -> list[dict]:
         log_file.write("planner=SBP then naive POMCP cleanup\n")
         log_file.write("---\n")
 
-    print(f"Running experiment on map {map_number} with seed {seed}")
+    print(f"Running experiment on map_set{map_set} map {map_number} with seed {seed}")
     print(f"Starting with {len(copies)} fragment copies")
     print(f"Logging each iteration to {log_path}")
 
@@ -260,24 +300,23 @@ def run_experiment(map_number: int, seed: int, log_path: Path) -> list[dict]:
     return results
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--map", type=int, default=DEFAULT_MAP, help="map_set2 map number")
-    parser.add_argument("--seed", type=int, default=0, help="RNG seed for which copy to remove")
-    args = parser.parse_args()
-
+def run_one_map(map_set: int, map_number: int, seed: int) -> Path:
+    """Run the full experiment for one map; write txt/json/png under experiment_results/."""
+    map_module, _ = MAP_SETS[map_set]
     OUTPUT_DIR.mkdir(exist_ok=True)
-    txt_path = OUTPUT_DIR / f"map_{args.map}_coverage_rollouts.txt"
-    results = run_experiment(args.map, args.seed, txt_path)
+    prefix = f"set{map_set}_map_{map_number}"
+    txt_path = OUTPUT_DIR / f"{prefix}_coverage_rollouts.txt"
+    json_path = OUTPUT_DIR / f"{prefix}_coverage_rollouts.json"
+    plot_path = OUTPUT_DIR / f"{prefix}_coverage_rollouts.png"
 
-    json_path = OUTPUT_DIR / f"map_{args.map}_coverage_rollouts.json"
-    plot_path = OUTPUT_DIR / f"map_{args.map}_coverage_rollouts.png"
+    results = run_experiment(map_module, map_set, map_number, seed, txt_path)
 
     with json_path.open("w", encoding="utf-8") as output_file:
         json.dump(
             {
-                "map": args.map,
-                "seed": args.seed,
+                "map_set": map_set,
+                "map": map_number,
+                "seed": seed,
                 "points": results,
             },
             output_file,
@@ -285,10 +324,58 @@ def main() -> None:
         )
         output_file.write("\n")
 
-    plot_results(results, args.map, plot_path)
+    plot_results(results, map_set, map_number, plot_path)
     print(f"\nWrote {txt_path}")
     print(f"Wrote {json_path}")
     print(f"Wrote {plot_path}")
+    return txt_path
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--map-set",
+        type=int,
+        choices=sorted(MAP_SETS),
+        default=DEFAULT_MAP_SET,
+        help="1 = small smoke-test maps (map_set1), 2 = full suite (map_set2). Default: 2",
+    )
+    parser.add_argument(
+        "--map",
+        type=int,
+        default=None,
+        help="map number within the chosen map set",
+    )
+    parser.add_argument(
+        "--all-maps",
+        action="store_true",
+        help="run every supported map in the chosen map set",
+    )
+    parser.add_argument("--seed", type=int, default=0, help="RNG seed for which copy to remove")
+    args = parser.parse_args()
+
+    if args.all_maps and args.map is not None:
+        parser.error("use either --map or --all-maps, not both")
+
+    _, supported = MAP_SETS[args.map_set]
+    if args.all_maps:
+        map_numbers = supported
+    elif args.map is not None:
+        map_numbers = [args.map]
+    else:
+        map_numbers = [DEFAULT_MAP if args.map_set == 2 else supported[0]]
+
+    print(
+        f"map_set={args.map_set} maps={map_numbers} seed={args.seed} "
+        f"(supported for --all-maps: {supported})"
+    )
+    for map_number in map_numbers:
+        print("\n" + "=" * 60)
+        print(f"map_set{args.map_set} MAP {map_number}")
+        print("=" * 60)
+        run_one_map(args.map_set, map_number, args.seed)
+
+    print("\nAll requested map experiments finished.")
 
 
 if __name__ == "__main__":

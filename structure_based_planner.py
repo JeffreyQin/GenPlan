@@ -1,14 +1,67 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 import numpy as np
 import time
 import globals
 from escape_search import EscapeMCTS
-from tree_builder import Cell, Node, EscapeNode, BridgeNode
+from tree_builder import Cell, Node, EscapeNode, BridgeNode, Action
 from map_utils import segment_map, fragment_to_map_coords, update_map
 from generator import Generator, BridgeGenerator
 from fragment_search import FragmentPOMCP
 from bridge_search import BridgePOMCP
 import math
+
+
+def is_fragment_border_cell(
+    pos: tuple[int, int],
+    fragment: np.ndarray,
+    segmentation: dict,
+) -> bool:
+    if pos not in segmentation:
+        return False
+    _, base_r, base_c = segmentation[pos]
+    height, width = fragment.shape
+    return base_r in (0, height - 1) or base_c in (0, width - 1)
+
+
+def path_to_nearest_fragment_border(
+    map_data: np.ndarray,
+    start: tuple[int, int],
+    fragment: np.ndarray,
+    segmentation: dict,
+) -> list[tuple[int, int]]:
+    """BFS from start to the nearest open border cell of any remaining fragment copy."""
+    if is_fragment_border_cell(start, fragment, segmentation):
+        return [start]
+
+    height, width = map_data.shape
+    queue = deque([start])
+    parent = {start: None}
+
+    while queue:
+        row, column = queue.popleft()
+        for next_row, next_column in (
+            (row - 1, column),
+            (row + 1, column),
+            (row, column - 1),
+            (row, column + 1),
+        ):
+            if not (0 <= next_row < height and 0 <= next_column < width):
+                continue
+            if map_data[next_row, next_column] == Cell.WALL.value:
+                continue
+            cell = (next_row, next_column)
+            if cell in parent:
+                continue
+            parent[cell] = (row, column)
+            if is_fragment_border_cell(cell, fragment, segmentation):
+                path = [cell]
+                while parent[path[-1]] is not None:
+                    path.append(parent[path[-1]])
+                path.reverse()
+                return path
+            queue.append(cell)
+
+    raise RuntimeError(f"No reachable fragment border from {start}")
 
 # Constants for visualization
 TILE_SIZE = 30
@@ -153,6 +206,8 @@ def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.
     path = list()
     moves = list()
     ctr = 0
+    stuck_steps = 0
+    reached_explore = False
     ## recursively compute next cell in the fragment by optimal action
     while ctr <= len(generator.rooms) * 10:
         path.append(root_node.agent_pos)
@@ -161,16 +216,26 @@ def run_bridge_search(map: np.ndarray, agent_pos: tuple[int, int], fragment: np.
         best_action = pomcp_algorithm.search(root_node)
         moves.append(best_action)
 
-        if len(root_node.children) == 0:
+        if best_action is None or len(root_node.children) == 0:
             break
-        elif best_action == 4: # begin fragment search
+        elif best_action == Action.EXPLORE.value: # begin fragment search
+            reached_explore = True
             break
         else:
-            root_node = root_node.children[best_action]
+            next_node = root_node.children[best_action]
+            if next_node is None:
+                break
+            if next_node.agent_pos == root_node.agent_pos:
+                stuck_steps += 1
+                if stuck_steps >= 5:
+                    break
+            else:
+                stuck_steps = 0
+            root_node = next_node
 
         ctr += 1
     
-    return path, moves, generator.observed
+    return path, moves, generator.observed, reached_explore
 
 
 def run_fragment_search(subtrees, fragment: list[list[int, int]], agent_pos: tuple[int, int]):
@@ -285,7 +350,9 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         bridge_start = time.time()
 
         remaining_copies = [copy for copy in copies if copy['top left'] not in explored_copies]
-        bridge_path, bridge_moves, observation = run_bridge_search(map, agent_pos, fragment, remaining_copies)
+        bridge_path, bridge_moves, observation, reached_explore = run_bridge_search(
+            map, agent_pos, fragment, remaining_copies
+        )
         #update_map(map, observation)
 
         bridge_end = time.time()
@@ -296,7 +363,24 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
         agent_path.extend(bridge_path)
         checkpoints.append(len(agent_path))
 
-        agent_pos = bridge_path[-1] # fragment entrance
+        agent_pos = bridge_path[-1]
+        # Bridge POMCP can wander into a fragment interior (e.g. (2,5) on map 8)
+        # without selecting EXPLORE. Snap to the nearest real fragment border.
+        if (
+            not reached_explore
+            or agent_pos not in segmentation
+            or not is_fragment_border_cell(agent_pos, fragment, segmentation)
+        ):
+            recovery_path = path_to_nearest_fragment_border(
+                map, agent_pos, fragment, segmentation
+            )
+            print("Bridge did not reach a fragment border; recovering via BFS")
+            print(recovery_path)
+            if len(recovery_path) > 1:
+                agent_path.extend(recovery_path[1:])
+                checkpoints.append(len(agent_path))
+            agent_pos = recovery_path[-1]
+
         copy, base_r, base_c = segmentation[agent_pos]
         
         # mapping from fragment coords to global coords
