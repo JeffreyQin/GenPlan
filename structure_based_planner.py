@@ -1,6 +1,5 @@
 from collections import defaultdict
 import numpy as np
-import pygame
 import time
 import globals
 from escape_search import EscapeMCTS
@@ -282,8 +281,6 @@ def run_sbp_planner(map: np.ndarray, fragment: np.ndarray, copies: list[dict]):
     while copies:
         i += 1
         print("NEW ITERATION")
-        if(i == 12):
-            break
         # perform bridge search
         bridge_start = time.time()
 

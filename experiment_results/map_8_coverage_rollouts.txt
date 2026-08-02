@@ -1,0 +1,7 @@
+map=8
+seed=0
+starting_copies=6
+corruption=substitute_fragment_N_corrupted
+---
+iteration=1	remaining_copies=6	coverage_percentage=89.19	total_rollouts=57641034
+substituted_corrupted_copy_top_left=(15, 1)	remaining_copies_after=5

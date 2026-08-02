@@ -499,6 +499,27 @@ fragment_8 = np.array (
     [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
 ]
 )
+# Hand-authored alternate layout for coverage/rollout experiments.
+# Keeps the same border entry cells as fragment_8; all open cells are
+# reachable from every entry. Used to "remove" a copy's structure.
+fragment_8_corrupted = np.array (
+[
+    [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,0,0,0,0],
+    [0,0,0,2,2,0,0,0,0,0,2,2,0,0,0],
+    [0,0,2,2,0,0,2,2,2,0,0,2,2,0,0],
+    [0,2,2,0,0,2,2,0,2,2,0,0,2,2,0],
+    [2,2,2,2,2,2,0,0,0,2,2,2,2,2,2],
+    [2,0,0,0,0,2,2,2,2,2,0,0,0,0,2],
+    [2,0,0,0,0,2,0,0,0,2,0,0,0,0,2],
+    [2,2,2,2,2,2,0,0,0,2,2,2,2,2,2],
+    [0,2,2,0,0,2,2,0,2,2,0,0,2,2,0],
+    [0,0,2,2,0,0,2,2,2,0,0,2,2,0,0],
+    [0,0,0,2,2,0,0,0,0,0,2,2,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
+]
+)
 copies_8 = [
     {"top left": (1,1), "reflect": False, "rotations": 0},
     {"top left": (1,15), "reflect": False, "rotations": 0},

@@ -1,0 +1,4 @@
+map=4
+seed=0
+starting_copies=10
+---

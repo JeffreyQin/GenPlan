@@ -1,0 +1,122 @@
+{
+  "1": {
+    "open_cells": {
+      "coverage_percentage": 100.0,
+      "covered_cells": 712,
+      "total_cells": 712
+    },
+    "all_cells": {
+      "coverage_percentage": 89.19,
+      "covered_cells": 1204,
+      "total_cells": 1350
+    }
+  },
+  "2": {
+    "open_cells": {
+      "coverage_percentage": 88.52,
+      "covered_cells": 540,
+      "total_cells": 610
+    },
+    "all_cells": {
+      "coverage_percentage": 59.26,
+      "covered_cells": 800,
+      "total_cells": 1350
+    }
+  },
+  "3": {
+    "open_cells": {
+      "coverage_percentage": 93.24,
+      "covered_cells": 552,
+      "total_cells": 592
+    },
+    "all_cells": {
+      "coverage_percentage": 69.33,
+      "covered_cells": 936,
+      "total_cells": 1350
+    }
+  },
+  "4": {
+    "open_cells": {
+      "coverage_percentage": 61.83,
+      "covered_cells": 290,
+      "total_cells": 469
+    },
+    "all_cells": {
+      "coverage_percentage": 31.11,
+      "covered_cells": 420,
+      "total_cells": 1350
+    }
+  },
+  "5": {
+    "open_cells": {
+      "coverage_percentage": 96.21,
+      "covered_cells": 888,
+      "total_cells": 923
+    },
+    "all_cells": {
+      "coverage_percentage": 80.0,
+      "covered_cells": 1080,
+      "total_cells": 1350
+    }
+  },
+  "6": {
+    "open_cells": {
+      "coverage_percentage": 82.59,
+      "covered_cells": 370,
+      "total_cells": 448
+    },
+    "all_cells": {
+      "coverage_percentage": 41.48,
+      "covered_cells": 560,
+      "total_cells": 1350
+    }
+  },
+  "7": {
+    "open_cells": {
+      "coverage_percentage": 96.77,
+      "covered_cells": 720,
+      "total_cells": 744
+    },
+    "all_cells": {
+      "coverage_percentage": 80.0,
+      "covered_cells": 1080,
+      "total_cells": 1350
+    }
+  },
+  "8": {
+    "open_cells": {
+      "coverage_percentage": 100.0,
+      "covered_cells": 524,
+      "total_cells": 524
+    },
+    "all_cells": {
+      "coverage_percentage": 89.19,
+      "covered_cells": 1204,
+      "total_cells": 1350
+    }
+  },
+  "9": {
+    "open_cells": {
+      "coverage_percentage": 87.44,
+      "covered_cells": 557,
+      "total_cells": 637
+    },
+    "all_cells": {
+      "coverage_percentage": 57.33,
+      "covered_cells": 774,
+      "total_cells": 1350
+    }
+  },
+  "10": {
+    "open_cells": {
+      "coverage_percentage": 32.92,
+      "covered_cells": 160,
+      "total_cells": 486
+    },
+    "all_cells": {
+      "coverage_percentage": 18.52,
+      "covered_cells": 250,
+      "total_cells": 1350
+    }
+  }
+}
