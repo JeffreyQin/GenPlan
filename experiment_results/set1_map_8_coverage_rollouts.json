@@ -1,0 +1,83 @@
+{
+  "map_set": 1,
+  "map": 8,
+  "seed": 0,
+  "points": [
+    {
+      "remaining_copies": 5,
+      "coverage_percentage": 64.29,
+      "sbp_rollouts": 399683,
+      "naive_rollouts": 7331,
+      "total_rollouts": 407014,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 44010,
+        "rollouts_at_50pct": 147844,
+        "rollouts_at_75pct": 323935,
+        "rollouts_at_90pct": 399683,
+        "rollouts_at_100pct": 407014
+      },
+      "rollouts_at_25pct": 44010,
+      "rollouts_at_50pct": 147844,
+      "rollouts_at_75pct": 323935,
+      "rollouts_at_90pct": 399683,
+      "rollouts_at_100pct": 407014
+    },
+    {
+      "remaining_copies": 4,
+      "coverage_percentage": 51.43,
+      "sbp_rollouts": 345607,
+      "naive_rollouts": 273504,
+      "total_rollouts": 619111,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 45726,
+        "rollouts_at_50pct": 179997,
+        "rollouts_at_75pct": 278301,
+        "rollouts_at_90pct": 367369,
+        "rollouts_at_100pct": 619111
+      },
+      "rollouts_at_25pct": 45726,
+      "rollouts_at_50pct": 179997,
+      "rollouts_at_75pct": 278301,
+      "rollouts_at_90pct": 367369,
+      "rollouts_at_100pct": 619111
+    },
+    {
+      "remaining_copies": 3,
+      "coverage_percentage": 38.57,
+      "sbp_rollouts": 347243,
+      "naive_rollouts": 502351,
+      "total_rollouts": 849594,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 46372,
+        "rollouts_at_50pct": 186669,
+        "rollouts_at_75pct": 347243,
+        "rollouts_at_90pct": 536671,
+        "rollouts_at_100pct": 849594
+      },
+      "rollouts_at_25pct": 46372,
+      "rollouts_at_50pct": 186669,
+      "rollouts_at_75pct": 347243,
+      "rollouts_at_90pct": 536671,
+      "rollouts_at_100pct": 849594
+    },
+    {
+      "remaining_copies": 2,
+      "coverage_percentage": 25.71,
+      "sbp_rollouts": 249697,
+      "naive_rollouts": 829659,
+      "total_rollouts": 1079356,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 126859,
+        "rollouts_at_50pct": 126859,
+        "rollouts_at_75pct": 249697,
+        "rollouts_at_90pct": 779993,
+        "rollouts_at_100pct": 1079356
+      },
+      "rollouts_at_25pct": 126859,
+      "rollouts_at_50pct": 126859,
+      "rollouts_at_75pct": 249697,
+      "rollouts_at_90pct": 779993,
+      "rollouts_at_100pct": 1079356
+    }
+  ]
+}

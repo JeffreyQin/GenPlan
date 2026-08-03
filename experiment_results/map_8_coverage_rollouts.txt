@@ -2,6 +2,11 @@ map=8
 seed=0
 starting_copies=6
 corruption=substitute_fragment_N_corrupted
+planner=SBP then naive POMCP cleanup
 ---
-iteration=1	remaining_copies=6	coverage_percentage=89.19	total_rollouts=57641034
+iteration=1	remaining_copies=6	coverage_percentage=89.19	sbp_rollouts=47421819	naive_rollouts=42119677	total_rollouts=89541496
 substituted_corrupted_copy_top_left=(15, 1)	remaining_copies_after=5
+iteration=2	remaining_copies=5	coverage_percentage=74.67	sbp_rollouts=188107049	naive_rollouts=74533060	total_rollouts=262640109
+substituted_corrupted_copy_top_left=(15, 15)	remaining_copies_after=4
+iteration=3	remaining_copies=4	coverage_percentage=60.15	sbp_rollouts=60131944	naive_rollouts=298784095	total_rollouts=358916039
+substituted_corrupted_copy_top_left=(1, 1)	remaining_copies_after=3

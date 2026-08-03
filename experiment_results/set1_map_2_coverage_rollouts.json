@@ -1,0 +1,45 @@
+{
+  "map_set": 1,
+  "map": 2,
+  "seed": 0,
+  "points": [
+    {
+      "remaining_copies": 3,
+      "coverage_percentage": 55.1,
+      "sbp_rollouts": 348148,
+      "naive_rollouts": 0,
+      "total_rollouts": 348148,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 96585,
+        "rollouts_at_50pct": 221339,
+        "rollouts_at_75pct": 223093,
+        "rollouts_at_90pct": 345132,
+        "rollouts_at_100pct": 345132
+      },
+      "rollouts_at_25pct": 96585,
+      "rollouts_at_50pct": 221339,
+      "rollouts_at_75pct": 223093,
+      "rollouts_at_90pct": 345132,
+      "rollouts_at_100pct": 345132
+    },
+    {
+      "remaining_copies": 2,
+      "coverage_percentage": 36.73,
+      "sbp_rollouts": 233786,
+      "naive_rollouts": 74457,
+      "total_rollouts": 308243,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 97755,
+        "rollouts_at_50pct": 224347,
+        "rollouts_at_75pct": 226102,
+        "rollouts_at_90pct": 308243,
+        "rollouts_at_100pct": 308243
+      },
+      "rollouts_at_25pct": 97755,
+      "rollouts_at_50pct": 224347,
+      "rollouts_at_75pct": 226102,
+      "rollouts_at_90pct": 308243,
+      "rollouts_at_100pct": 308243
+    }
+  ]
+}

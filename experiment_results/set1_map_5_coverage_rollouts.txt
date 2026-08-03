@@ -1,0 +1,13 @@
+map_set=1
+map=5
+seed=0
+starting_copies=4
+corruption=substitute_fragment_N_corrupted
+planner=SBP then naive POMCP cleanup
+milestones=rollouts when open-cell observation first reaches 25/50/75/90/100 percent
+---
+iteration=1	remaining_copies=4	coverage_percentage=69.93	sbp_rollouts=1041153	naive_rollouts=0	total_rollouts=1041153	rollouts_at_25pct=58167	rollouts_at_50pct=58167	rollouts_at_75pct=325377	rollouts_at_90pct=946365	rollouts_at_100pct=1031854
+substituted_corrupted_copy_top_left=(6, 8)	remaining_copies_after=3
+iteration=2	remaining_copies=3	coverage_percentage=52.45	sbp_rollouts=1109314	naive_rollouts=480258	total_rollouts=1589572	rollouts_at_25pct=76293	rollouts_at_50pct=76293	rollouts_at_75pct=309767	rollouts_at_90pct=1100006	rollouts_at_100pct=1589572
+substituted_corrupted_copy_top_left=(0, 8)	remaining_copies_after=2
+iteration=3	remaining_copies=2	coverage_percentage=34.97	sbp_rollouts=477323	naive_rollouts=1375118	total_rollouts=1852441	rollouts_at_25pct=93717	rollouts_at_50pct=93717	rollouts_at_75pct=366131	rollouts_at_90pct=1204165	rollouts_at_100pct=1852441

@@ -1,0 +1,8 @@
+map_set=2
+map=8
+seed=0
+starting_copies=6
+corruption=substitute_fragment_N_corrupted
+planner=SBP then naive POMCP cleanup
+milestones=rollouts when open-cell observation first reaches 25/50/75/90/100 percent
+---

@@ -1,0 +1,26 @@
+{
+  "map_set": 1,
+  "map": 3,
+  "seed": 0,
+  "points": [
+    {
+      "remaining_copies": 2,
+      "coverage_percentage": 71.43,
+      "sbp_rollouts": 83190,
+      "naive_rollouts": 0,
+      "total_rollouts": 83190,
+      "exploration_milestones": {
+        "rollouts_at_25pct": 30648,
+        "rollouts_at_50pct": 30648,
+        "rollouts_at_75pct": 83190,
+        "rollouts_at_90pct": 83190,
+        "rollouts_at_100pct": 83190
+      },
+      "rollouts_at_25pct": 30648,
+      "rollouts_at_50pct": 30648,
+      "rollouts_at_75pct": 83190,
+      "rollouts_at_90pct": 83190,
+      "rollouts_at_100pct": 83190
+    }
+  ]
+}
